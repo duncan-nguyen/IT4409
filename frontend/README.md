@@ -9,6 +9,8 @@ Video calling interface with real-time AI filters.
 - 🎨 Multiple filters: Blur, Grayscale, Sepia, Face Detection
 - 📱 Responsive design (Tailwind CSS)
 - 🔄 Automatic reconnection
+- 🔁 Auto-renegotiation (onnegotiationneeded) + ICE restart
+- 📉 Adaptive bitrate/resolution based on connection quality
 - 👥 Multi-peer video calling
 
 ## Tech Stack
@@ -40,6 +42,10 @@ NEXT_PUBLIC_STUN_URL=stun:localhost:3478
 NEXT_PUBLIC_TURN_URL=turn:localhost:3478
 NEXT_PUBLIC_TURN_USERNAME=cnwebuser
 NEXT_PUBLIC_TURN_PASSWORD=cnwebpass
+
+# Notes
+- TURN credentials are optional but recommended for NAT traversal.
+- If unset, the app falls back to public STUN servers.
 ```
 
 ## Video Processing Pipeline
@@ -88,6 +94,7 @@ Changes to files trigger automatic reload.
 - Open Chrome DevTools (F12)
 - Check Console for errors
 - Use chrome://webrtc-internals/ for WebRTC debugging
+- Observe renegotiation and ICE restarts in console logs
 - Monitor Network tab for API calls
 
 ## Build
