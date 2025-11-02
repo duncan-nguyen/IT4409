@@ -35,7 +35,7 @@ export class PeerConnection {
   private peerId: string;
   private onStreamCallback?: (stream: MediaStream) => void;
   private onNegotiationNeededCallback?: (offer: RTCSessionDescriptionInit) => void;
-  private onStateChangeCallback?: (state: RTCPeerConnectionState, iceState: RTCIceConnectionState) => void;
+  private onIceStateChangeCallback?: (state: RTCIceConnectionState) => void;
 
   constructor(peerId: string, onStream?: (stream: MediaStream) => void) {
     this.peerId = peerId;
@@ -54,27 +54,22 @@ export class PeerConnection {
 
     this.pc.oniceconnectionstatechange = () => {
       console.log('ICE connection state:', this.pc.iceConnectionState);
-      if (this.onStateChangeCallback) {
-        this.onStateChangeCallback(this.pc.connectionState, this.pc.iceConnectionState);
+      if (this.onIceStateChangeCallback) {
+        this.onIceStateChangeCallback(this.pc.iceConnectionState);
       }
     };
 
     this.pc.onconnectionstatechange = () => {
       console.log('Connection state:', this.pc.connectionState);
-      if (this.onStateChangeCallback) {
-        this.onStateChangeCallback(this.pc.connectionState, this.pc.iceConnectionState);
-      }
     };
 
     this.pc.onnegotiationneeded = async () => {
       try {
-        // Create and surface a fresh offer for renegotiation
+        if (!this.onNegotiationNeededCallback) return;
         const offer = await this.createOffer();
-        if (this.onNegotiationNeededCallback) {
-          this.onNegotiationNeededCallback(offer);
-        }
+        this.onNegotiationNeededCallback(offer);
       } catch (err) {
-        console.error('Negotiation needed handling failed:', err);
+        console.error('Failed handling negotiationneeded:', err);
       }
     };
   }
@@ -120,27 +115,6 @@ export class PeerConnection {
     };
   }
 
-  onNegotiationNeeded(callback: (offer: RTCSessionDescriptionInit) => void) {
-    this.onNegotiationNeededCallback = callback;
-  }
-
-  onStateChange(callback: (state: RTCPeerConnectionState, iceState: RTCIceConnectionState) => void) {
-    this.onStateChangeCallback = callback;
-  }
-
-  async restartIce(): Promise<RTCSessionDescriptionInit> {
-    try {
-      // Hint the implementation to restart ICE
-      this.pc.restartIce();
-      const offer = await this.pc.createOffer({ iceRestart: true });
-      await this.pc.setLocalDescription(offer);
-      return offer;
-    } catch (error) {
-      console.error('Error during ICE restart:', error);
-      throw error;
-    }
-  }
-
   close() {
     this.pc.close();
   }
@@ -171,5 +145,23 @@ export class PeerConnection {
     } else {
       console.warn('Track sender not found');
     }
+  }
+
+  onNegotiationNeeded(callback: (offer: RTCSessionDescriptionInit) => void) {
+    this.onNegotiationNeededCallback = callback;
+  }
+
+  onIceConnectionStateChange(callback: (state: RTCIceConnectionState) => void) {
+    this.onIceStateChangeCallback = callback;
+  }
+
+  async restartIce(): Promise<RTCSessionDescriptionInit> {
+    const offer = await this.pc.createOffer({ iceRestart: true });
+    await this.pc.setLocalDescription(offer);
+    return offer;
+  }
+
+  getPeerId(): string {
+    return this.peerId;
   }
 }
