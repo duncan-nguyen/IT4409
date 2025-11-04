@@ -229,7 +229,7 @@ npm run dev
 | Module | Progress | Status |
 |--------|----------|--------|
 | CV/ML (TV2) | 100% | ✅ DONE |
-| Frontend (TV1) | 0% | 🚧 TODO |
+| Frontend (TV1) | 25% | 🚧 TODO |
 | Backend (TV3) | 0% | 🚧 TODO |
 | WebRTC (TV4) | 0% | 🚧 TODO |
 

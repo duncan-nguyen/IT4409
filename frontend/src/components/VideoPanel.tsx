@@ -21,7 +21,7 @@ const VideoPanel: React.FC<VideoPanelProps> = ({ title, isRemote = false }) => {
       v.play().catch((e) => console.error('Video playback failed:', e));
     }
   }, []);
-
+// Giả lập filter
   const getFilterStyles = () => {
     if (!filterActive) return '';
     if (!isRemote) {
