@@ -1,0 +1,53 @@
+# Node & package manager
+node_modules/
+**/node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn-error.log
+
+# Vite / build outputs
+dist/
+build/
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.*
+.env.local
+
+# Editor/IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# ESLint / caching
+.eslintcache
+.cache/
+
+# Misc
+.history/
+
+# Large media or build artifacts (optional)
+# Uncomment if you store generated video assets in the repo
+## *.mp4
+## *.mov
