@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # Service 1: Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cnweb-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - NEXT_PUBLIC_WS_URL=http://localhost:5000
+      - NEXT_PUBLIC_STUN_URL=stun:localhost:3478
+      - NEXT_PUBLIC_TURN_URL=turn:localhost:3478
+      - NEXT_PUBLIC_TURN_USERNAME=cnwebuser
+      - NEXT_PUBLIC_TURN_PASSWORD=cnwebpass
+      - NODE_ENV=development
+    depends_on:
+      - room-api
+      - signaling-server
+      - coturn
+    networks:
+      - cnweb-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service 2: Room API Backend
+  room-api:
+    build:
+      context: ./room-api
+      dockerfile: Dockerfile
+    container_name: cnweb-room-api
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=cnweb_rooms
+      - DB_USER=cnwebuser
+      - DB_PASSWORD=cnwebpass
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cnweb-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service 3: Signaling Server
+  signaling-server:
+    build:
+      context: ./signaling-server
+      dockerfile: Dockerfile
+    container_name: cnweb-signaling-server
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - CORS_ORIGIN=http://localhost:3000
+    networks:
+      - cnweb-network
+
+  # Service 4: COTURN (STUN/TURN Server)
+  coturn:
+    image: coturn/coturn:latest
+    container_name: cnweb-coturn
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "5349:5349/tcp"
+      - "5349:5349/udp"
+      - "49160-49200:49160-49200/udp"
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf
+    command: -c /etc/coturn/turnserver.conf
+    networks:
+      - cnweb-network
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cnweb-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=cnweb_rooms
+      - POSTGRES_USER=cnwebuser
+      - POSTGRES_PASSWORD=cnwebpass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./room-api/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cnweb-network
+    restart: unless-stopped
+
+  # Service 5: AI Service (Python/FastAPI + WebRTC)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: cnweb-ai-service
+    ports:
+      - "8000:8000"
+      # WebRTC UDP ports range (optional for local dev but good practice)
+      - "50000-50050:50000-50050/udp"
+    environment:
+      - PORT=8000
+    networks:
+      - cnweb-network
+    restart: unless-stopped
+
+networks:
+  cnweb-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
