@@ -1,0 +1,105 @@
+=========================================================
+GUIDELINE TRIỂN KHAI ĐỀ TÀI 13 (Bản nâng cao)
+Hệ thống Video Streaming, AI Filters và Tương tác Real-time
+Kiến trúc: Microservices (4 Services) + Frontend Next.js
+=========================================================
+
+### MỤC TIÊU NÂNG CẤP (ADVANCED FEATURES)
+
+1.  **Giao diện hiện đại:** Sử dụng `shadcn/ui` và `TailwindCSS` cho UI/UX.
+2.  **Nền ảo (Virtual Backgrounds):** Cho phép người dùng làm mờ hoặc thay thế nền (Blur/Image Background).
+3.  **Tương tác AI (Gestures):** Nhận diện cử chỉ tay (ví dụ: giơ tay) để thực hiện hành động.
+4.  **Filter 3D (AR Filters):** Áp dụng các vật thể 3D (kính, mũ) lên mặt người dùng và xoay theo góc nhìn.
+5.  **Tương tác trong phòng:** Chat text real-time và thả Reactions (👍, ❤️) bay lên màn hình.
+6.  **Tính năng Web API:** Screen Sharing (chia sẻ màn hình) và Client-side Recording (quay video cuộc gọi).
+7.  **Quản lý người dùng:** Hỗ trợ Đăng ký/Đăng nhập và tạo "Phòng cố định" (Persistent Rooms).
+8.  **Trải nghiệm ứng dụng:** Tối ưu thành Progressive Web App (PWA) có thể "cài đặt".
+
+---
+
+### SERVICE 1: FRONTEND & CORE AI LOGIC (Person 1)
+
+* **Công nghệ chính:** Next.js (React), shadcn/ui, TailwindCSS, Framer Motion, TensorFlow.js (@mediapipe), OpenCV.js, Three.js, Socket.IO-Client, WebRTC, next-pwa.
+* **Mô tả:** Trái tim của ứng dụng, xử lý toàn bộ UI/UX và logic AI/Filter nặng phía client.
+* **Nhiệm vụ chi tiết:**
+    1.  **Xây dựng Giao diện (UI/UX):**
+        * Dựng toàn bộ UI (Landing Page, Room Page) bằng các components từ **shadcn/ui** (Button, Input, Dialog, Tooltip, Avatar...).
+        * Sử dụng **TailwindCSS** để tùy chỉnh thiết kế.
+        * Dùng **Framer Motion** để thêm các hiệu ứng chuyển động (animations) mượt mà.
+    2.  **Thiết lập Pipeline Xử lý Video (Core Logic):**
+        * Lấy stream từ camera (`getUserMedia`) hoặc màn hình (`getDisplayMedia`).
+        * Thiết lập vòng lặp `requestAnimationFrame` và `Canvas` để xử lý frame-by-frame.
+        * **Tích hợp AI - Virtual Background:** Dùng TensorFlow.js + model `MediaPipe Selfie Segmentation` để tách người ra khỏi nền -> vẽ lại lên canvas với nền mờ hoặc nền tùy chỉnh.
+        * **Tích hợp AI - 3D AR Filters:** Dùng model `MediaPipe Face Mesh` (lấy lưới 3D của mặt) kết hợp `Three.js` để render các vật thể 3D (mũ, kính) khớp với khuôn mặt.
+        * **Tích hợp AI - Gesture Recognition:** Dùng model `MediaPipe Hands` để phát hiện cử chỉ (ví dụ: giơ tay), sau đó gửi sự kiện qua Socket.IO.
+    3.  **Tích hợp Tính năng Web API:**
+        * **Screen Sharing:** Triển khai logic cho `getDisplayMedia`.
+        * **Client-side Recording:** Dùng **`MediaRecorder` API** để ghi lại `canvas.captureStream()` và cho phép người dùng download file video.
+        * **PWA:** Cấu hình `next-pwa` để tạo Service Worker và Web App Manifest, cho phép "Cài đặt" ứng dụng.
+    4.  **Logic WebRTC & Tương tác:**
+        * Lấy stream đã xử lý (từ Canvas) đưa vào `RTCPeerConnection`.
+        * Gọi **Service 2** để đăng nhập, tạo/lấy phòng.
+        * Kết nối **Service 3** để xử lý tín hiệu WebRTC (offer, answer...) VÀ gửi/nhận tin nhắn chat, reactions.
+        * Cấu hình **Service 4** (STUN/TURN) cho `RTCPeerConnection`.
+
+---
+
+### SERVICE 2: API QUẢN LÝ USER & PHÒNG (API Service) (Person 2)
+
+* **Công nghệ chính:** Node.js (Express/Fastify), REST API, Database (PostgreSQL/MongoDB), JWT (JSON Web Tokens), Prisma (hoặc ORM khác).
+* **Mô tả:** Microservice backend quản lý trạng thái, user và phòng ốc.
+* **Nhiệm vụ chi tiết:**
+    1.  **Thiết kế Database:**
+        * Schema cho `Users` (email, password hashed, name...).
+        * Schema cho `Rooms` (room_id, tên phòng, `ownerId` (khóa ngoại tới Users), slug (cho đường dẫn đẹp)).
+    2.  **Xây dựng Authentication API (Dùng JWT):**
+        * `POST /api/auth/register`
+        * `POST /api/auth/login`
+        * `GET /api/auth/me` (Lấy thông tin user hiện tại từ Token)
+    3.  **Xây dựng Room API (Yêu cầu xác thực):**
+        * `POST /api/rooms/create`: Tạo phòng ngẫu nhiên (cho khách).
+        * `POST /api/rooms/persistent`: Tạo phòng cố định (cho user đã đăng nhập), ví dụ: `/room/my-team`.
+        * `GET /api/rooms/user`: Lấy danh sách các phòng của user.
+        * `GET /api/rooms/:roomId`: Lấy thông tin/kiểm tra phòng tồn tại.
+    4.  **Dockerfile:** Viết Dockerfile để đóng gói service.
+* **Giao thức thống nhất (Interface):** Cung cấp tài liệu API (Swagger/OpenAPI) cho Person 1.
+
+---
+
+### SERVICE 3: MÁY CHỦ TÍN HIỆU & TƯƠNG TÁC (Signaling Server) (Person 3)
+
+* **Công nghệ chính:** Node.js + WebSockets (ưu tiên `Socket.IO`).
+* **Mô tả:** Dịch vụ "mai mối" (Signaling) cho WebRTC và trung chuyển tin nhắn, sự kiện real-time.
+* **Nhiệm vụ chi tiết:**
+    1.  **Xây dựng WebSocket Server (Socket.IO):**
+    2.  **Quản lý Room và Socket:**
+        * Cho phép client `join_room` và `leave_room`.
+    3.  **Lắng nghe và Chuyển tiếp (Broadcast) các sự kiện WebRTC (cốt lõi):**
+        * `offer`, `answer`, `ice_candidate`.
+    4.  **Lắng nghe và Chuyển tiếp các sự kiện Tương tác (Nâng cao):**
+        * `send_message`: Nhận tin nhắn chat từ 1 client và broadcast cho cả phòng.
+        * `send_reaction`: Nhận sự kiện "thả tim" và broadcast cho cả phòng.
+        * `send_gesture`: Nhận sự kiện "giơ tay" và broadcast.
+    5.  **Dockerfile:** Viết Dockerfile để đóng gói service.
+* **Giao thức thống nhất (Interface):** Định nghĩa rõ tên tất cả các sự kiện Socket (ví dụ: `join_room`, `send_message`, `new_message`...) cho Person 1.
+
+---
+
+### SERVICE 4: MÁY CHỦ STUN/TURN (NAT Traversal) (Person 4)
+
+* **Công nghệ chính:** Docker, COTURN.
+* **Mô tả:** Service hạ tầng giúp WebRTC vượt qua các lớp tường lửa (NAT).
+* **Nhiệm vụ chi tiết (Thiên về DevOps):**
+    1.  **Nghiên cứu STUN/TURN:**
+        * **STUN:** Giúp client biết IP public.
+        * **TURN:** Làm server trung gian (relay) khi kết nối P2P (trực tiếp) thất bại.
+    2.  **Triển khai COTURN:**
+        * Tìm Docker Image của COTURN (ví dụ: `coturn/coturn`).
+        * Viết file cấu hình `turnserver.conf` (định nghĩa port, realm, user/password cho TURN).
+    3.  **Tích hợp Docker Compose:**
+        * Thêm service `coturn` vào file `docker-compose.yml` chung.
+        * Map file `turnserver.conf` vào container.
+        * Mở các port cần thiết (ví dụ: `3478/tcp` và `3478/udp`).
+* **Giao thức thống nhất (Interface):** Cung cấp thông tin cấu hình (URL, username, password) của máy chủ STUN/TURN cho Person 1.
+
+=========================================================
