@@ -10,10 +10,10 @@ import WaitingRoomList from '@/components/WaitingRoomList';
 import { Button } from '@/components/ui/button';
 import { FilterType, Peer } from '@/types';
 import { CombinedProcessor } from '@/utils/combinedProcessor';
-import { ConnectionMonitor } from '@/utils/connectionMonitor';
-import { NetworkAdapter } from '@/utils/networkAdapter';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { PeerConnection } from '@/utils/webrtc';
+import { ConnectionMonitor } from '@/utils/connectionMonitor';
+import { NetworkAdapter } from '@/utils/networkAdapter';
 import { AIServiceConnection } from '@/utils/webrtc-ai';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -45,7 +45,8 @@ export default function RoomPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const peerConnectionsRef = useRef<Map<string, PeerConnection>>(new Map());
-  const monitorsRef = useRef<Map<string, { monitor: ConnectionMonitor; adapter: NetworkAdapter }>>(new Map());
+  const monitorsRef = useRef<Map<string, ConnectionMonitor>>(new Map());
+  const adaptersRef = useRef<Map<string, NetworkAdapter>>(new Map());
   const socketRef = useRef<ReturnType<typeof initSocket> | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const aiConnectionRef = useRef<AIServiceConnection | null>(null);
@@ -223,23 +224,6 @@ export default function RoomPage() {
             pc.addStream(processedStream);
           }
 
-          // Start connection monitoring and basic adaptation
-          {
-            const monitor = new ConnectionMonitor(pc.getPeerConnection());
-            const adapter = new NetworkAdapter(pc.getPeerConnection());
-            monitor.startMonitoring(async (q) => {
-              // Simple adaptation: adjust resolution based on quality tier
-              if (q.quality === 'poor') {
-                await adapter.adjustResolution('low');
-              } else if (q.quality === 'fair') {
-                await adapter.adjustResolution('medium');
-              } else {
-                await adapter.adjustResolution('high');
-              }
-            }, 4000);
-            monitorsRef.current.set(peer.peerId, { monitor, adapter });
-          }
-
           // Create offer for existing peer
           pc.createOffer().then((offer) => {
             socket.emit('offer', { roomId, peerId: peer.peerId, offer });
@@ -249,14 +233,14 @@ export default function RoomPage() {
             socket.emit('ice_candidate', { roomId, peerId: peer.peerId, candidate });
           });
 
-          // Auto-renegotiate when needed
+          // Renegotiation hook
           pc.onNegotiationNeeded((offer) => {
             socket.emit('offer', { roomId, peerId: peer.peerId, offer });
           });
 
-          // Attempt recovery on disconnect/failed
-          pc.onStateChange(async (state, iceState) => {
-            if (state === 'disconnected' || state === 'failed' || iceState === 'disconnected' || iceState === 'failed') {
+          // ICE restart on failure
+          pc.onIceConnectionStateChange(async (state) => {
+            if (state === 'failed') {
               try {
                 const offer = await pc.restartIce();
                 socket.emit('offer', { roomId, peerId: peer.peerId, offer });
@@ -265,6 +249,21 @@ export default function RoomPage() {
               }
             }
           });
+
+          // Connection monitoring and simple adaptation
+          const monitor = new ConnectionMonitor(pc.getPeerConnection());
+          const adapter = new NetworkAdapter(pc.getPeerConnection());
+          monitorsRef.current.set(peer.peerId, monitor);
+          adaptersRef.current.set(peer.peerId, adapter);
+          monitor.startMonitoring(async (q) => {
+            if (q.quality === 'poor') {
+              await adapter.adjustResolution('low');
+            } else if (q.quality === 'fair') {
+              await adapter.adjustResolution('medium');
+            } else {
+              await adapter.adjustResolution('high');
+            }
+          }, 4000);
 
           peerConnectionsRef.current.set(peer.peerId, pc);
         });
@@ -287,22 +286,6 @@ export default function RoomPage() {
           pc.addStream(processedStream);
         }
 
-        // Start connection monitoring
-        {
-          const monitor = new ConnectionMonitor(pc.getPeerConnection());
-          const adapter = new NetworkAdapter(pc.getPeerConnection());
-          monitor.startMonitoring(async (q) => {
-            if (q.quality === 'poor') {
-              await adapter.adjustResolution('low');
-            } else if (q.quality === 'fair') {
-              await adapter.adjustResolution('medium');
-            } else {
-              await adapter.adjustResolution('high');
-            }
-          }, 4000);
-          monitorsRef.current.set(peerId, { monitor, adapter });
-        }
-
         const offer = await pc.createOffer();
         socket.emit('offer', { roomId, peerId, offer });
 
@@ -314,8 +297,8 @@ export default function RoomPage() {
           socket.emit('offer', { roomId, peerId, offer });
         });
 
-        pc.onStateChange(async (state, iceState) => {
-          if (state === 'disconnected' || state === 'failed' || iceState === 'disconnected' || iceState === 'failed') {
+        pc.onIceConnectionStateChange(async (state) => {
+          if (state === 'failed') {
             try {
               const offer = await pc.restartIce();
               socket.emit('offer', { roomId, peerId, offer });
@@ -324,6 +307,20 @@ export default function RoomPage() {
             }
           }
         });
+
+        const monitor = new ConnectionMonitor(pc.getPeerConnection());
+        const adapter = new NetworkAdapter(pc.getPeerConnection());
+        monitorsRef.current.set(peerId, monitor);
+        adaptersRef.current.set(peerId, adapter);
+        monitor.startMonitoring(async (q) => {
+          if (q.quality === 'poor') {
+            await adapter.adjustResolution('low');
+          } else if (q.quality === 'fair') {
+            await adapter.adjustResolution('medium');
+          } else {
+            await adapter.adjustResolution('high');
+          }
+        }, 4000);
 
         peerConnectionsRef.current.set(peerId, pc);
       });
@@ -350,20 +347,34 @@ export default function RoomPage() {
           socket.emit('ice_candidate', { roomId, peerId, candidate });
         });
 
-        pc.onNegotiationNeeded((offer) => {
-          socket.emit('offer', { roomId, peerId, offer });
+        pc.onNegotiationNeeded((newOffer) => {
+          socket.emit('offer', { roomId, peerId, offer: newOffer });
         });
 
-        pc.onStateChange(async (state, iceState) => {
-          if (state === 'disconnected' || state === 'failed' || iceState === 'disconnected' || iceState === 'failed') {
+        pc.onIceConnectionStateChange(async (state) => {
+          if (state === 'failed') {
             try {
-              const offer = await pc.restartIce();
-              socket.emit('offer', { roomId, peerId, offer });
+              const newOffer = await pc.restartIce();
+              socket.emit('offer', { roomId, peerId, offer: newOffer });
             } catch (e) {
               console.error('ICE restart failed:', e);
             }
           }
         });
+
+        const monitor = new ConnectionMonitor(pc.getPeerConnection());
+        const adapter = new NetworkAdapter(pc.getPeerConnection());
+        monitorsRef.current.set(peerId, monitor);
+        adaptersRef.current.set(peerId, adapter);
+        monitor.startMonitoring(async (q) => {
+          if (q.quality === 'poor') {
+            await adapter.adjustResolution('low');
+          } else if (q.quality === 'fair') {
+            await adapter.adjustResolution('medium');
+          } else {
+            await adapter.adjustResolution('high');
+          }
+        }, 4000);
 
         peerConnectionsRef.current.set(peerId, pc);
       });
@@ -388,11 +399,6 @@ export default function RoomPage() {
           pc.close();
           peerConnectionsRef.current.delete(peerId);
         }
-        const mon = monitorsRef.current.get(peerId);
-        if (mon) {
-          mon.monitor.stopMonitoring();
-          monitorsRef.current.delete(peerId);
-        }
         setPeers((prev) => {
           const newPeers = new Map(prev);
           newPeers.delete(peerId);
@@ -415,7 +421,13 @@ export default function RoomPage() {
         disconnectSocket();
         socketRef.current = null;
       }
-      peerConnectionsRef.current.forEach((pc) => pc.close());
+      peerConnectionsRef.current.forEach((pc, id) => {
+        pc.close();
+        const m = monitorsRef.current.get(id);
+        if (m) m.stopMonitoring();
+        monitorsRef.current.delete(id);
+        adaptersRef.current.delete(id);
+      });
       peerConnectionsRef.current.clear();
     };
   }, [roomId]);
