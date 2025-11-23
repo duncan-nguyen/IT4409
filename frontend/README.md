@@ -1,73 +1,114 @@
-# React + TypeScript + Vite
+# Frontend Service
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Video calling interface with real-time AI filters.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎥 HD video streaming (1280x720)
+- 🤖 Real-time AI face detection (TensorFlow.js BlazeFace)
+- 🎨 Multiple filters: Blur, Grayscale, Sepia, Face Detection
+- 📱 Responsive design (Tailwind CSS)
+- 🔄 Automatic reconnection
+- 👥 Multi-peer video calling
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: Next.js 14 (App Router)
+- **UI**: React 18, Tailwind CSS
+- **AI/ML**: TensorFlow.js, BlazeFace model
+- **WebRTC**: Native RTCPeerConnection API
+- **Real-time**: Socket.IO Client
+- **Language**: TypeScript
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open http://localhost:3000
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Environment Variables
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_WS_URL=http://localhost:5000
+NEXT_PUBLIC_STUN_URL=stun:localhost:3478
+NEXT_PUBLIC_TURN_URL=turn:localhost:3478
+NEXT_PUBLIC_TURN_USERNAME=cnwebuser
+NEXT_PUBLIC_TURN_PASSWORD=cnwebpass
 ```
+
+## Video Processing Pipeline
+
+1. **Capture**: `getUserMedia()` → Camera stream
+2. **Process**: Draw to canvas → Apply AI/filters
+3. **Stream**: `captureStream()` → Processed video
+4. **Send**: Add to RTCPeerConnection → Transmit to peers
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx              # Home (create/join room)
+│   ├── layout.tsx            # Root layout
+│   ├── globals.css           # Global styles
+│   └── room/[roomId]/
+│       └── page.tsx          # Video call room
+├── components/
+│   ├── VideoGrid.tsx         # Video layout
+│   ├── VideoControls.tsx     # Mute/video controls
+│   └── FilterSelector.tsx    # Filter buttons
+├── utils/
+│   ├── socket.ts             # Socket.IO client
+│   ├── webrtc.ts             # WebRTC logic
+│   └── filters.ts            # AI/Filter processing
+└── types/
+    └── index.ts              # TypeScript types
+```
+
+## Available Filters
+
+- **None**: Original video
+- **Blur**: Gaussian blur effect
+- **Grayscale**: Black & white
+- **Sepia**: Vintage tone
+- **Face Detection**: Real-time face tracking with landmarks
+
+## Development
+
+### Hot Reload
+Changes to files trigger automatic reload.
+
+### Debug Tips
+- Open Chrome DevTools (F12)
+- Check Console for errors
+- Use chrome://webrtc-internals/ for WebRTC debugging
+- Monitor Network tab for API calls
+
+## Build
+
+```bash
+npm run build
+npm start
+```
+
+## Docker
+
+```bash
+docker build -t cnweb-frontend .
+docker run -p 3000:3000 cnweb-frontend
+```
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Edge 90+
+- Safari 15+ (limited)
+
+Requires WebRTC support and camera/microphone permissions.
