@@ -9,8 +9,6 @@ Video calling interface with real-time AI filters.
 - 🎨 Multiple filters: Blur, Grayscale, Sepia, Face Detection
 - 📱 Responsive design (Tailwind CSS)
 - 🔄 Automatic reconnection
-- 🔁 Auto-renegotiation (onnegotiationneeded) + ICE restart
-- 📉 Adaptive bitrate/resolution based on connection quality
 - 👥 Multi-peer video calling
 
 ## Tech Stack
@@ -42,11 +40,19 @@ NEXT_PUBLIC_STUN_URL=stun:localhost:3478
 NEXT_PUBLIC_TURN_URL=turn:localhost:3478
 NEXT_PUBLIC_TURN_USERNAME=cnwebuser
 NEXT_PUBLIC_TURN_PASSWORD=cnwebpass
-
-# Notes
-- TURN credentials are optional but recommended for NAT traversal.
-- If unset, the app falls back to public STUN servers.
 ```
+
+Notes:
+- STUN helps discover public IP/port; TURN relays media when P2P fails (NAT/firewall).
+- For production, run a TURN server (e.g., coturn). This app reads the single `NEXT_PUBLIC_STUN_URL` and `NEXT_PUBLIC_TURN_URL` you provide.
+- With TURN credentials set, peers behind symmetric NATs can still connect reliably.
+
+## WebRTC Resilience
+
+- Renegotiation: The client listens for `onnegotiationneeded` to create and send a fresh offer when tracks change.
+- ICE restart: On `iceConnectionState = failed`, the client restarts ICE and re-sends an offer via signaling.
+- Monitoring: A lightweight monitor adjusts outgoing video resolution based on link quality.
+- Debugging: Use `chrome://webrtc-internals/` and check Console logs for negotiation/ICE events.
 
 ## Video Processing Pipeline
 
@@ -94,7 +100,6 @@ Changes to files trigger automatic reload.
 - Open Chrome DevTools (F12)
 - Check Console for errors
 - Use chrome://webrtc-internals/ for WebRTC debugging
-- Observe renegotiation and ICE restarts in console logs
 - Monitor Network tab for API calls
 
 ## Build
