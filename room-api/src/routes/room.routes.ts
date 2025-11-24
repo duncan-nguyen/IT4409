@@ -1,8 +1,8 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import pool from '../config/database';
+import { validateRoomId, validateRoomInput } from '../middleware/validation';
 import { CreateRoomInput, Room } from '../types';
-import { validateRoomInput, validateRoomId } from '../middleware/validation';
 
 const router = Router();
 
