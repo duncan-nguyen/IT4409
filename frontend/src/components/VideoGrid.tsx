@@ -1,5 +1,5 @@
 import { Peer } from '@/types';
-import { VideoOff, Mic, MicOff } from 'lucide-react';
+import { MicOff, VideoOff } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 interface VideoGridProps {
