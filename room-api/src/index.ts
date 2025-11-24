@@ -1,11 +1,11 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application, NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
-import roomRoutes from './routes/room.routes';
-import authRoutes from './routes/auth.routes';
 import analyticsRoutes from './routes/analytics.routes';
+import authRoutes from './routes/auth.routes';
+import roomRoutes from './routes/room.routes';
 
 dotenv.config();
 

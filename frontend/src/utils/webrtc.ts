@@ -123,7 +123,7 @@ export class PeerConnection {
   async replaceTrack(oldTrack: MediaStreamTrack, newTrack: MediaStreamTrack | null): Promise<void> {
     const senders = this.pc.getSenders();
     const sender = senders.find(s => s.track === oldTrack);
-    
+
     if (sender) {
       await sender.replaceTrack(newTrack);
       console.log('Track replaced successfully');
