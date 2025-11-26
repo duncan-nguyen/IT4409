@@ -124,3 +124,9 @@ docker run -p 3000:3000 cnweb-frontend
 - Safari 15+ (limited)
 
 Requires WebRTC support and camera/microphone permissions.
+
+## Pre-Join & Waiting Room
+
+- Pre-Join: Preview camera, toggle mic/cam, and select devices before joining.
+- Device Selection: Choose `audioinput`, `videoinput`, and `audiooutput` (Chrome/Edge).
+- Waiting Room (host): Approve or deny participants from the inline panel during a session.
