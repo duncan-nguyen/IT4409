@@ -107,4 +107,28 @@ export class PeerConnection {
   getPeerConnection(): RTCPeerConnection {
     return this.pc;
   }
+
+  getConnectionState(): RTCPeerConnectionState {
+    return this.pc.connectionState;
+  }
+
+  getIceConnectionState(): RTCIceConnectionState {
+    return this.pc.iceConnectionState;
+  }
+
+  getStats(): Promise<RTCStatsReport> {
+    return this.pc.getStats();
+  }
+
+  async replaceTrack(oldTrack: MediaStreamTrack, newTrack: MediaStreamTrack | null): Promise<void> {
+    const senders = this.pc.getSenders();
+    const sender = senders.find(s => s.track === oldTrack);
+
+    if (sender) {
+      await sender.replaceTrack(newTrack);
+      console.log('Track replaced successfully');
+    } else {
+      console.warn('Track sender not found');
+    }
+  }
 }
