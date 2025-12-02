@@ -1,40 +1,37 @@
-import { useEffect, useRef } from 'react';
 import { Peer } from '@/types';
-import { VideoOff } from 'lucide-react';
+import { MicOff, VideoOff } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 interface VideoGridProps {
   localStream: MediaStream | null;
   peers: Peer[];
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef?: React.RefObject<HTMLCanvasElement>;
   isVideoEnabled: boolean;
+  isAudioEnabled?: boolean;
 }
 
-export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnabled }: VideoGridProps) {
+export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnabled, isAudioEnabled = true }: VideoGridProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (localVideoRef.current && canvasRef.current) {
-      const stream = canvasRef.current.captureStream(30);
-      localVideoRef.current.srcObject = stream;
-      console.log('📺 VideoGrid: Canvas stream assigned to video element');
-      console.log('Canvas dimensions:', canvasRef.current.width, 'x', canvasRef.current.height);
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+      console.log('📺 VideoGrid: Local stream assigned to video element');
     }
-  }, [localStream, canvasRef]);
+  }, [localStream]);
 
   const totalVideos = 1 + peers.length;
-  
+
   return (
     <div className="w-full h-full flex items-center justify-center">
-      <div className={`grid gap-4 w-[70%] max-w-5xl ${
-        totalVideos === 1 ? 'grid-cols-1' :
+      <div className={`grid gap-4 w-[70%] max-w-5xl ${totalVideos === 1 ? 'grid-cols-1' :
         totalVideos === 2 ? 'grid-cols-2' :
-        totalVideos <= 4 ? 'grid-cols-2' :
-        'grid-cols-3'
-      }`}>
-        {/* Local Video */}
-        <div className={`relative bg-gray-800 rounded-xl overflow-hidden shadow-2xl ${
-          totalVideos === 1 ? 'aspect-video max-h-full' : 'aspect-video'
+          totalVideos <= 4 ? 'grid-cols-2' :
+            'grid-cols-3'
         }`}>
+        {/* Local Video */}
+        <div className={`relative bg-gray-800 rounded-xl overflow-hidden shadow-2xl ${totalVideos === 1 ? 'aspect-video max-h-full' : 'aspect-video'
+          }`}>
           {isVideoEnabled ? (
             <video
               ref={localVideoRef}
@@ -51,8 +48,9 @@ export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnable
               </div>
             </div>
           )}
-          <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 px-4 py-2 rounded-full">
+          <div className="absolute bottom-4 left-4 bg-black bg-opacity-50 px-4 py-2 rounded-full flex items-center space-x-2">
             <span className="text-base font-medium">You</span>
+            {!isAudioEnabled && <MicOff className="h-4 w-4 text-red-400" />}
           </div>
         </div>
 
@@ -75,9 +73,8 @@ function RemoteVideo({ peer, totalVideos }: { peer: Peer; totalVideos: number })
   }, [peer.stream]);
 
   return (
-    <div className={`relative bg-gray-800 rounded-xl overflow-hidden shadow-2xl ${
-      totalVideos === 1 ? 'aspect-video max-h-full' : 'aspect-video'
-    }`}>
+    <div className={`relative bg-gray-800 rounded-xl overflow-hidden shadow-2xl ${totalVideos === 1 ? 'aspect-video max-h-full' : 'aspect-video'
+      }`}>
       <video
         ref={videoRef}
         autoPlay
