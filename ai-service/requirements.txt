@@ -1,6 +1,6 @@
 fastapi==0.104.1
 uvicorn==0.24.0
-aiortc==1.6.0
+aiortc==1.9.0
 mediapipe==0.10.8
 opencv-python-headless==4.8.1.78
 numpy==1.26.2
