@@ -10,6 +10,7 @@ import { FilterType, Peer } from '@/types';
 import { disconnectSocket, initSocket } from '@/utils/socket';
 import { PeerConnection } from '@/utils/webrtc';
 import { AIServiceConnection } from '@/utils/webrtc-ai';
+import { CombinedProcessor } from '@/utils/combinedProcessor';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -34,6 +35,7 @@ export default function RoomPage() {
   const socketRef = useRef<ReturnType<typeof initSocket> | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const aiConnectionRef = useRef<AIServiceConnection | null>(null);
+  const combinedProcessorRef = useRef<CombinedProcessor | null>(null);
 
   // Initialize camera
   useEffect(() => {
@@ -70,48 +72,62 @@ export default function RoomPage() {
       if (aiConnectionRef.current) {
         aiConnectionRef.current.close();
       }
+      if (combinedProcessorRef.current) {
+        combinedProcessorRef.current.stop();
+      }
     };
   }, []);
 
-  // AI Processing Pipeline
+  // AI Processing Pipeline with Combined Processor
   useEffect(() => {
     const processVideo = async () => {
-      if (!localStream || !aiConnectionRef.current) return;
+      if (!localStream) return;
 
-      let mode: 'blur' | 'face-detection' | 'none' = 'none';
+      const needsFaceDetection = currentFilter === 'face-detection';
+      const needsBackground = currentBackground !== 'none';
 
-      if (currentBackground === 'blur') {
-        mode = 'blur';
-      } else if (currentFilter === 'face-detection') {
-        mode = 'face-detection';
-      }
-
-      if (mode === 'none') {
+      // If no processing needed, use original stream
+      if (!needsFaceDetection && !needsBackground) {
+        if (combinedProcessorRef.current) {
+          combinedProcessorRef.current.stop();
+          combinedProcessorRef.current = null;
+        }
         setProcessedStream(localStream);
-        aiConnectionRef.current.close();
+        console.log('✅ Using original stream (no processing)');
         return;
       }
 
       try {
-        console.log('🔄 Switching to AI mode:', mode);
-        const newStream = await aiConnectionRef.current.processStream(localStream, mode);
-
-        // Add audio track from original stream
-        const audioTrack = localStream.getAudioTracks()[0];
-        if (audioTrack) {
-          newStream.addTrack(audioTrack);
+        // If processor exists, just update options
+        if (combinedProcessorRef.current) {
+          await combinedProcessorRef.current.updateOptions({
+            enableFaceDetection: needsFaceDetection,
+            backgroundType: currentBackground,
+            backgroundImageUrl: backgroundImageUrl || undefined,
+          });
+          console.log('🔄 Updated processor options');
+          return;
         }
 
-        setProcessedStream(newStream);
-      } catch (err) {
-        console.error('Failed to process stream with AI service:', err);
-        // Fallback to original stream
+        // Create new combined processor
+        console.log('🔄 Starting combined processor...');
+        combinedProcessorRef.current = new CombinedProcessor({
+          enableFaceDetection: needsFaceDetection,
+          backgroundType: currentBackground,
+          backgroundImageUrl: backgroundImageUrl || undefined,
+        });
+
+        const processedStream = await combinedProcessorRef.current.initialize(localStream);
+        setProcessedStream(processedStream);
+        console.log('✅ Combined processor active');
+      } catch (error) {
+        console.error('Failed to start combined processor:', error);
         setProcessedStream(localStream);
       }
     };
 
     processVideo();
-  }, [localStream, currentFilter, currentBackground]);
+  }, [localStream, currentFilter, currentBackground, backgroundImageUrl]);
 
   // Update Peer Connections when stream changes
   useEffect(() => {
@@ -302,6 +318,7 @@ export default function RoomPage() {
           localStream={processedStream}
           peers={Array.from(peers.values())}
           isVideoEnabled={isVideoEnabled}
+          currentFilter={currentFilter}
         />
       </div>
 
