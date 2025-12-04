@@ -13,7 +13,6 @@ import {
   ChevronUp,
   Smile,
   MessageCircle,
-  Hand,
   MoreVertical,
   Heart,
   ThumbsUp,
@@ -25,7 +24,6 @@ import {
   Palette,
   Image as ImageIcon,
   X as XIcon,
-  Filter as FilterIcon,
   Upload
 } from 'lucide-react';
 import { Button } from './ui/button';
