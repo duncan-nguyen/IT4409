@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ThumbsUp, Smile, Star, Zap } from 'lucide-react';
-import { Button } from './ui/button';
 
 interface Reaction {
   id: string;
