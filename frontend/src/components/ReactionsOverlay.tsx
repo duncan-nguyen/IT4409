@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ThumbsUp, Smile, Star, Zap } from 'lucide-react';
-import { Button } from './ui/button';
 
 interface Reaction {
   id: string;
@@ -51,23 +50,23 @@ export default function ReactionsOverlay({ socket, roomId }: ReactionsOverlayPro
     };
   }, [socket]);
 
-  const sendReaction = (type: string) => {
-    if (!socket) return;
-    socket.emit('send_reaction', { roomId, type });
+  // const sendReaction = (type: string) => {
+  //   if (!socket) return;
+  //   socket.emit('send_reaction', { roomId, type });
     
-    // Add local reaction immediately
-    const newReaction: Reaction = {
-      id: `local-${Date.now()}-${Math.random()}`,
-      type,
-      x: Math.random() * 80 + 10,
-      timestamp: Date.now(),
-    };
-    setReactions((prev) => [...prev, newReaction]);
+  //   // Add local reaction immediately
+  //   const newReaction: Reaction = {
+  //     id: `local-${Date.now()}-${Math.random()}`,
+  //     type,
+  //     x: Math.random() * 80 + 10,
+  //     timestamp: Date.now(),
+  //   };
+  //   setReactions((prev) => [...prev, newReaction]);
     
-    setTimeout(() => {
-      setReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
-    }, 3000);
-  };
+  //   setTimeout(() => {
+  //     setReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
+  //   }, 3000);
+  // };
 
   return (
     <>

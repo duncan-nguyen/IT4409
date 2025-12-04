@@ -13,7 +13,6 @@ import {
   ChevronUp,
   Smile,
   MessageCircle,
-  Hand,
   MoreVertical,
   Heart,
   ThumbsUp,
@@ -25,7 +24,7 @@ import {
   Palette,
   Image as ImageIcon,
   X as XIcon,
-  Filter as FilterIcon
+  Upload
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -83,6 +82,7 @@ export default function UnifiedControlBar({
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const reactionIcons = [
     { type: 'heart', icon: Heart, color: 'text-red-500' },
@@ -113,6 +113,12 @@ export default function UnifiedControlBar({
   const presetImages = [
     { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1280&h=720&fit=crop', name: 'Mountains' },
     { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1280&h=720&fit=crop', name: 'Stars' },
+    { url: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1280&h=720&fit=crop', name: 'Gradient' },
+    { url: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1280&h=720&fit=crop', name: 'Beach' },
+    { url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1280&h=720&fit=crop', name: 'Abstract' },
+    { url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1280&h=720&fit=crop', name: 'Ocean' },
+    { url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1280&h=720&fit=crop', name: 'Space' },
+    { url: 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1280&h=720&fit=crop', name: 'Forest' },
   ];
 
   const sendReaction = (type: string) => {
@@ -188,6 +194,19 @@ export default function UnifiedControlBar({
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        onBackgroundChange('image', imageUrl);
+        setShowFiltersMenu(false);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -380,6 +399,10 @@ export default function UnifiedControlBar({
             >
               <div className="space-y-1">
                 <Button
+                  onClick={() => {
+                    onToggleChat();
+                    setShowMoreMenu(false);
+                  }}
                   variant="ghost"
                   className="w-full justify-start text-white hover:bg-white/10 rounded-lg"
                 >
@@ -405,85 +428,115 @@ export default function UnifiedControlBar({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#1c1c1e]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 p-4 min-w-[320px]"
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#1c1c1e]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 min-w-[320px] max-w-[400px] max-h-[70vh] flex flex-col"
             >
-              {/* Filters Section */}
-              <div className="mb-4">
-                <h3 className="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wide">Filters</h3>
-                <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-                  {filters.map(({ value, label, icon: Icon }) => (
-                    <Button
-                      key={value}
-                      onClick={() => {
-                        onFilterChange(value);
-                        setShowFiltersMenu(false);
-                      }}
-                      variant="ghost"
-                      className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all ${
-                        currentFilter === value
-                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
-                          : 'hover:bg-white/10 text-white'
-                      }`}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="text-[10px]">{label}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Backgrounds Section */}
-              <div>
-                <h3 className="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wide">Virtual Background</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {backgrounds.map(({ value, label, icon: Icon }) => (
-                    <Button
-                      key={value}
-                      onClick={() => {
-                        onBackgroundChange(value);
-                        if (value !== 'image') {
-                          setShowFiltersMenu(false);
-                        }
-                      }}
-                      variant="ghost"
-                      className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all ${
-                        currentBackground === value
-                          ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
-                          : 'hover:bg-white/10 text-white'
-                      }`}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="text-[10px]">{label}</span>
-                    </Button>
-                  ))}
-                </div>
-                
-                {/* Preset Background Images */}
-                {currentBackground === 'image' && (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    {presetImages.map((img, idx) => (
-                      <motion.div
-                        key={idx}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-white/10 hover:border-blue-500 transition-all h-16"
+              {/* Scrollable Content */}
+              <div 
+                className="overflow-y-auto p-4" 
+                style={{ 
+                  scrollbarWidth: 'thin', 
+                  scrollbarColor: '#6b7280 #1f2937',
+                }}
+              >
+                {/* Filters Section */}
+                <div className="mb-4">
+                  <h3 className="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wide">Filters</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {filters.map(({ value, label, icon: Icon }) => (
+                      <Button
+                        key={value}
                         onClick={() => {
-                          onBackgroundChange('image', img.url);
+                          onFilterChange(value);
                           setShowFiltersMenu(false);
                         }}
+                        variant="ghost"
+                        className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all ${
+                          currentFilter === value
+                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
+                            : 'hover:bg-white/10 text-white'
+                        }`}
                       >
-                        <img 
-                          src={img.url} 
-                          alt={img.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
-                          <span className="text-white text-[10px] p-1.5">{img.name}</span>
-                        </div>
-                      </motion.div>
+                        <Icon className="h-5 w-5" />
+                        <span className="text-[10px]">{label}</span>
+                      </Button>
                     ))}
                   </div>
-                )}
+                </div>
+
+                {/* Backgrounds Section */}
+                <div>
+                  <h3 className="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wide">Virtual Background</h3>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {backgrounds.map(({ value, label, icon: Icon }) => (
+                      <Button
+                        key={value}
+                        onClick={() => {
+                          onBackgroundChange(value);
+                          if (value !== 'image') {
+                            setShowFiltersMenu(false);
+                          }
+                        }}
+                        variant="ghost"
+                        className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all ${
+                          currentBackground === value
+                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
+                            : 'hover:bg-white/10 text-white'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span className="text-[10px]">{label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  {/* Preset Background Images - Always visible */}
+                  <div>
+                    <h4 className="text-[10px] font-semibold mb-2 text-gray-500 uppercase tracking-wide">Preset Backgrounds</h4>
+                    
+                    {/* Upload Button */}
+                    <div className="mb-3">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        variant="ghost"
+                        className="w-full h-12 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/50 rounded-xl flex items-center justify-center gap-2 transition-all"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span className="text-xs font-medium">Upload Your Image</span>
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {presetImages.map((img, idx) => (
+                        <motion.div
+                          key={idx}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-white/10 hover:border-purple-500 transition-all h-20"
+                          onClick={() => {
+                            onBackgroundChange('image', img.url);
+                            setShowFiltersMenu(false);
+                          }}
+                        >
+                          <img 
+                            src={img.url} 
+                            alt={img.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <span className="text-white text-[10px] font-medium p-1.5">{img.name}</span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
