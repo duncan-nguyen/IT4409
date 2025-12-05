@@ -1,4 +1,4 @@
-import { Peer } from '@/types';
+import { FilterType, Peer } from '@/types';
 import { MicOff, VideoOff } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
@@ -8,9 +8,10 @@ interface VideoGridProps {
   canvasRef?: React.RefObject<HTMLCanvasElement>;
   isVideoEnabled: boolean;
   isAudioEnabled?: boolean;
+  currentFilter?: FilterType;
 }
 
-export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnabled, isAudioEnabled = true }: VideoGridProps) {
+export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnabled, isAudioEnabled = true, currentFilter = 'none' }: VideoGridProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -21,6 +22,22 @@ export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnable
   }, [localStream]);
 
   const totalVideos = 1 + peers.length;
+
+  // Get CSS filter based on filter type
+  const getFilterStyle = (filterType: FilterType): string => {
+    switch (filterType) {
+      case 'grayscale':
+        return 'grayscale(100%)';
+      case 'sepia':
+        return 'sepia(100%)';
+      case 'blur':
+        return 'blur(5px)';
+      default:
+        return 'none';
+    }
+  };
+
+  const filterStyle = getFilterStyle(currentFilter);
 
   return (
     <div className="w-full h-full flex items-center justify-center">
@@ -39,6 +56,7 @@ export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnable
               playsInline
               muted
               className="w-full h-full object-cover scale-x-[-1]"
+              style={{ filter: filterStyle }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-900">
