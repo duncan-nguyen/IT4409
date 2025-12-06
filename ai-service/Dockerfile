@@ -4,7 +4,10 @@ WORKDIR /app
 
 # Install system dependencies required for opencv and aiortc
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    gcc \
+    g++ \
+    make \
+    libgl1 \
     libglib2.0-0 \
     libavdevice-dev \
     libavfilter-dev \

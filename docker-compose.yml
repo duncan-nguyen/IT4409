@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Service 1: Frontend (Next.js)
   frontend:
@@ -110,6 +108,11 @@ services:
     networks:
       - cnweb-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cnwebuser -d cnweb_rooms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Service 5: AI Service (Python/FastAPI + WebRTC)
   ai-service:
