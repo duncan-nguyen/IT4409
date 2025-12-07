@@ -16,11 +16,13 @@ services:
       - NEXT_PUBLIC_TURN_URL=turn:localhost:3478
       - NEXT_PUBLIC_TURN_USERNAME=cnwebuser
       - NEXT_PUBLIC_TURN_PASSWORD=cnwebpass
+      - NEXT_PUBLIC_AI_SERVICE_URL=http://localhost:8000
       - NODE_ENV=development
     depends_on:
       - room-api
       - signaling-server
       - coturn
+      - ai-service
     networks:
       - cnweb-network
     volumes:
@@ -86,7 +88,7 @@ services:
       - "3478:3478/udp"
       - "5349:5349/tcp"
       - "5349:5349/udp"
-      - "49160-49200:49160-49200/udp"
+      - "40000-40100:40000-40100/udp"
     volumes:
       - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf
     command: -c /etc/coturn/turnserver.conf
@@ -110,6 +112,11 @@ services:
     networks:
       - cnweb-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cnwebuser -d cnweb_rooms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Service 5: AI Service (Python/FastAPI + WebRTC)
   ai-service:
@@ -119,8 +126,7 @@ services:
     container_name: cnweb-ai-service
     ports:
       - "8000:8000"
-      # WebRTC UDP ports range (optional for local dev but good practice)
-      - "50000-50050:50000-50050/udp"
+      - "40200-40250:40200-40250/udp"
     environment:
       - PORT=8000
     networks:

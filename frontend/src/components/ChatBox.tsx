@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Send, MessageCircle, X } from 'lucide-react';
+import { Send, MessageCircle } from 'lucide-react';
 import { Button } from './ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface Message {
   id: string;
@@ -21,7 +21,7 @@ interface ChatBoxProps {
 export default function ChatBox({ socket, roomId, localPeerId }: ChatBoxProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

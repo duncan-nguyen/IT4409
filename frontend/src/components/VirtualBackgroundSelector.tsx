@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Image as ImageIcon, Sparkles, X } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Image as ImageIcon, Sparkles, X, Upload } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,9 +13,9 @@ interface VirtualBackgroundSelectorProps {
 }
 
 const backgrounds = [
-  { value: 'none' as const, label: 'None', icon: <X className="w-4 h-4" /> },
-  { value: 'blur' as const, label: 'Blur', icon: <Sparkles className="w-4 h-4" /> },
-  { value: 'image' as const, label: 'Custom', icon: <ImageIcon className="w-4 h-4" /> },
+  { value: 'none' as const, label: 'No BG', icon: <X className="w-5 h-5" /> },
+  { value: 'blur' as const, label: 'Blur BG', icon: <Sparkles className="w-5 h-5" /> },
+  { value: 'image' as const, label: 'Custom', icon: <ImageIcon className="w-5 h-5" /> },
 ];
 
 const presetImages = [
@@ -30,6 +30,7 @@ export default function VirtualBackgroundSelector({
   onBackgroundChange,
 }: VirtualBackgroundSelectorProps) {
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBackgroundChange = (bg: VirtualBackgroundType) => {
     if (bg === 'image') {
@@ -45,19 +46,39 @@ export default function VirtualBackgroundSelector({
     setShowImagePicker(false);
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        handleImageSelect(imageUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="mb-6">
-      <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Virtual Background</h3>
-      <div className="flex gap-3 flex-wrap">
+      <h3 className="text-xs font-semibold mb-3 text-gray-400 uppercase tracking-wider">Virtual Background</h3>
+      <div className="grid grid-cols-3 gap-3">
         {backgrounds.map((bg) => (
           <Button
             key={bg.value}
             onClick={() => handleBackgroundChange(bg.value)}
-            variant={currentBackground === bg.value ? 'default' : 'outline'}
-            className="flex items-center gap-2 transition-all hover:scale-105"
+            variant="ghost"
+            className={`
+              flex flex-col items-center justify-center gap-2 h-20
+              rounded-xl transition-all duration-200
+              ${currentBackground === bg.value 
+                ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/70 border border-gray-700'
+              }
+              hover:scale-105 active:scale-95
+            `}
           >
             {bg.icon}
-            {bg.label}
+            <span className="text-xs font-medium">{bg.label}</span>
           </Button>
         ))}
       </div>
@@ -76,47 +97,71 @@ export default function VirtualBackgroundSelector({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card border border-border rounded-xl p-6 max-w-2xl w-full"
+              className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-2xl w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Choose Background</h3>
+                <h3 className="text-xl font-bold text-white">Choose Background</h3>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowImagePicker(false)}
+                  className="text-gray-400 hover:text-white"
                 >
                   <X className="w-5 h-5" />
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {presetImages.map((img, idx) => (
-                  <motion.div
-                    key={idx}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all"
-                    onClick={() => handleImageSelect(img.url)}
-                  >
-                    <img
-                      src={img.url}
-                      alt={img.name}
-                      className="w-full h-32 object-cover"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                      <p className="text-white text-sm font-semibold">{img.name}</p>
-                    </div>
-                  </motion.div>
-                ))}
+              {/* Upload Button */}
+              <div className="mb-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center gap-2"
+                >
+                  <Upload className="w-5 h-5" />
+                  Upload Your Image
+                </Button>
               </div>
 
-              <div className="mt-4">
-                <p className="text-sm text-muted-foreground mb-2">Or enter custom URL:</p>
+              {/* Preset Images */}
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-gray-400 mb-3">PRESET BACKGROUNDS</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {presetImages.map((img, idx) => (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-700 hover:border-purple-500 transition-all"
+                      onClick={() => handleImageSelect(img.url)}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <p className="text-white text-sm font-semibold">{img.name}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom URL Input */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-400 mb-2">OR ENTER URL</h4>
                 <input
                   type="text"
                   placeholder="https://example.com/image.jpg"
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       const input = e.target as HTMLInputElement;
