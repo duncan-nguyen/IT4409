@@ -15,11 +15,11 @@ export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnable
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
+    if (localVideoRef.current && localStream && isVideoEnabled) {
       localVideoRef.current.srcObject = localStream;
       console.log('📺 VideoGrid: Local stream assigned to video element');
     }
-  }, [localStream]);
+  }, [localStream, isVideoEnabled]);
 
   const totalVideos = 1 + peers.length;
 
