@@ -23,21 +23,7 @@ export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnable
 
   const totalVideos = 1 + peers.length;
 
-  // Get CSS filter based on filter type
-  const getFilterStyle = (filterType: FilterType): string => {
-    switch (filterType) {
-      case 'grayscale':
-        return 'grayscale(100%)';
-      case 'sepia':
-        return 'sepia(100%)';
-      case 'blur':
-        return 'blur(5px)';
-      default:
-        return 'none';
-    }
-  };
-
-  const filterStyle = getFilterStyle(currentFilter);
+  // Filters are now applied in processed canvas; no CSS filter here
 
   return (
     <div className="w-full h-full flex items-center justify-center">
@@ -56,7 +42,6 @@ export default function VideoGrid({ localStream, peers, canvasRef, isVideoEnable
               playsInline
               muted
               className="w-full h-full object-cover scale-x-[-1]"
-              style={{ filter: filterStyle }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-900">
