@@ -85,9 +85,12 @@ export default function RoomPage() {
 
       const needsFaceDetection = currentFilter === 'face-detection';
       const needsBackground = currentBackground !== 'none';
+      const filterType = ['grayscale', 'sepia', 'blur'].includes(currentFilter as string)
+        ? (currentFilter as 'grayscale' | 'sepia' | 'blur')
+        : 'none';
 
       // If no processing needed, use original stream
-      if (!needsFaceDetection && !needsBackground) {
+      if (!needsFaceDetection && !needsBackground && filterType === 'none') {
         if (combinedProcessorRef.current) {
           combinedProcessorRef.current.stop();
           combinedProcessorRef.current = null;
@@ -104,6 +107,7 @@ export default function RoomPage() {
             enableFaceDetection: needsFaceDetection,
             backgroundType: currentBackground,
             backgroundImageUrl: backgroundImageUrl || undefined,
+            filterType,
           });
           console.log('🔄 Updated processor options');
           return;
@@ -115,6 +119,7 @@ export default function RoomPage() {
           enableFaceDetection: needsFaceDetection,
           backgroundType: currentBackground,
           backgroundImageUrl: backgroundImageUrl || undefined,
+          filterType,
         });
 
         const processedStream = await combinedProcessorRef.current.initialize(localStream);

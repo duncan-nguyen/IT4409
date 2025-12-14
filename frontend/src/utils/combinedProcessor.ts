@@ -102,6 +102,7 @@ export interface CombinedProcessorOptions {
   enableFaceDetection: boolean;
   backgroundType: 'none' | 'blur' | 'image';
   backgroundImageUrl?: string;
+  filterType?: 'none' | 'grayscale' | 'sepia' | 'blur';
 }
 
 export class CombinedProcessor {
@@ -239,11 +240,19 @@ export class CombinedProcessor {
             this.backgroundImage || undefined
           );
           
-          // Draw temp canvas to main canvas
+          // Draw temp canvas to main canvas with optional filter
+          if (this.options.filterType && this.options.filterType !== 'none') {
+            this.ctx.filter = this.getCanvasFilter(this.options.filterType);
+          }
           this.ctx.drawImage(this.tempCanvas, 0, 0);
+          this.ctx.filter = 'none';
         } else {
-          // No background, just draw video
+          // No background, draw video with optional filter
+          if (this.options.filterType && this.options.filterType !== 'none') {
+            this.ctx.filter = this.getCanvasFilter(this.options.filterType);
+          }
           this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+          this.ctx.filter = 'none';
         }
 
         // Step 2: Apply face detection if enabled
@@ -271,6 +280,19 @@ export class CombinedProcessor {
       this.animationFrameId = requestAnimationFrame(this.processFrame);
     }
   };
+
+  private getCanvasFilter(filter: 'none' | 'grayscale' | 'sepia' | 'blur'): string {
+    switch (filter) {
+      case 'grayscale':
+        return 'grayscale(100%)';
+      case 'sepia':
+        return 'sepia(100%)';
+      case 'blur':
+        return 'blur(5px)';
+      default:
+        return 'none';
+    }
+  }
 
   async updateOptions(options: Partial<CombinedProcessorOptions>) {
     const oldOptions = { ...this.options };
