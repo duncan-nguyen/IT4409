@@ -1,4 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-webgl';
 import * as blazeface from '@tensorflow-models/blazeface';
 import * as bodyPix from '@tensorflow-models/body-pix';
 
@@ -60,11 +61,18 @@ export const drawFaceDetection = (
     ctx.lineWidth = 3;
     ctx.strokeRect(start[0], start[1], size[0], size[1]);
 
-    // Draw landmarks (eyes, nose, mouth, ears)
+    // Draw landmarks (eyes, nose, mouth, ears) — number[][] | Tensor2D
     if (face.landmarks) {
       ctx.fillStyle = '#FF0000';
-      face.landmarks.forEach((landmark: any) => {
-        const [x, y] = landmark as [number, number];
+      const lm = face.landmarks as unknown;
+      let points: [number, number][] = [];
+      if (Array.isArray(lm)) {
+        points = lm as [number, number][];
+      } else if (lm && typeof (lm as any).arraySync === 'function') {
+        const arr = (lm as any).arraySync() as number[][];
+        points = arr.map((p) => [p[0], p[1]] as [number, number]);
+      }
+      points.forEach(([x, y]) => {
         ctx.beginPath();
         ctx.arc(x, y, 3, 0, 2 * Math.PI);
         ctx.fill();
