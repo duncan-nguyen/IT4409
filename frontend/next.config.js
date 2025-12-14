@@ -22,13 +22,34 @@ const withPWA = require('next-pwa')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  webpack: (config) => {
+  transpilePackages: [
+    '@tensorflow/tfjs',
+    '@tensorflow/tfjs-core',
+    '@tensorflow/tfjs-backend-webgl',
+    '@tensorflow/tfjs-backend-cpu',
+    '@tensorflow/tfjs-converter',
+    '@tensorflow-models/blazeface',
+    '@tensorflow-models/body-pix',
+    '@tensorflow-models/body-segmentation',
+  ],
+  webpack: (config, { isServer }) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       path: false,
       crypto: false,
     };
+    
+    // Exclude TensorFlow.js from server-side bundle
+    if (isServer) {
+      config.externals = [...(config.externals || []), {
+        '@tensorflow/tfjs': 'commonjs @tensorflow/tfjs',
+        '@tensorflow-models/blazeface': 'commonjs @tensorflow-models/blazeface',
+        '@tensorflow-models/body-pix': 'commonjs @tensorflow-models/body-pix',
+        '@tensorflow-models/body-segmentation': 'commonjs @tensorflow-models/body-segmentation',
+      }];
+    }
+    
     return config;
   },
 }

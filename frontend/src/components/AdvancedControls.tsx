@@ -24,9 +24,7 @@ export default function AdvancedControls({
   const startScreenShare = async () => {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          cursor: 'always' as any,
-        },
+        video: true,
         audio: false,
       });
 
