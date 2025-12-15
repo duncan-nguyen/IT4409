@@ -7,7 +7,10 @@ export interface RoomInfo {
 
 export interface Peer {
   peerId: string;
+  username?: string;
   stream?: MediaStream;
+  role?: 'host' | 'participant';
+  status?: 'waiting' | 'joined';
 }
 
 export type FilterType = 'none' | 'blur' | 'grayscale' | 'sepia' | 'face-detection' | 'vintage' | 'warm' | 'cool' | 'high-contrast' | 'invert' | 'night-vision' | 'dramatic';

@@ -224,11 +224,11 @@ processedStream.getTracks().forEach(track => {
 
 **⚠️ Critical Note for TV4**:
 ```javascript
-// ❌ DON'T DO THIS (old way):
+//  DON'T DO THIS (old way):
 const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
 peerConnection.addStream(stream);
 
-// ✅ DO THIS (new way with processed video):
+//  DO THIS (new way with processed video):
 const processedStream = videoProcessor.getProcessedStream();
 peerConnection.addStream(processedStream);
 ```

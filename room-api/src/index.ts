@@ -44,7 +44,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Room API server running on port ${PORT}`);
+  console.log(`Room API server running on port ${PORT}`);
 });
 
 export default app;

@@ -29,9 +29,9 @@ http://localhost:8000
 1. **Allow camera access** khi browser hỏi
 2. Click nút **"Bắt đầu"**
 3. Chọn filter từ panel bên phải:
-   - ✅ **Grayscale**: Xem video đen trắng
-   - ✅ **Sunglasses**: Đeo kính râm AR
-   - ✅ **Face Detection**: Khung quanh mặt
+   -  **Grayscale**: Xem video đen trắng
+   -  **Sunglasses**: Đeo kính râm AR
+   -  **Face Detection**: Khung quanh mặt
 4. Quan sát FPS ở góc phải trên (phải >= 20)
 
 ## 🔍 Demo các tính năng
@@ -82,8 +82,8 @@ peerConnection.addStream(processedStream);
 - Localhost không cần HTTPS
 
 ### Browser Support
-- ✅ Chrome 90+ (recommended)
-- ✅ Firefox 88+
+-  Chrome 90+ (recommended)
+-  Firefox 88+
 - ⚠️ Safari 14+ (có thể có issues)
 
 ### Performance Tips
