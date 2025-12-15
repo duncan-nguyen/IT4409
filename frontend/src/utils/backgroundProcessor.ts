@@ -2,7 +2,7 @@
  * Background Processor using BodyPix
  */
 
-import { loadSegmentationModel, applyVirtualBackground } from './virtualBackground';
+import { applyVirtualBackground, loadSegmentationModel } from './virtualBackground';
 
 export class BackgroundProcessor {
   private video: HTMLVideoElement | null = null;
@@ -28,7 +28,7 @@ export class BackgroundProcessor {
       this.backgroundImage = new Image();
       this.backgroundImage.crossOrigin = 'anonymous';
       this.backgroundImage.src = imageUrl;
-      
+
       try {
         await new Promise((resolve, reject) => {
           if (this.backgroundImage) {
@@ -39,7 +39,7 @@ export class BackgroundProcessor {
             };
           }
         });
-        console.log('✅ Background image loaded');
+        console.log(' Background image loaded');
       } catch (error) {
         console.error('Background image error:', error);
         this.backgroundImage = null;
@@ -50,7 +50,7 @@ export class BackgroundProcessor {
     try {
       await loadSegmentationModel();
       this.modelReady = true;
-      console.log('✅ Segmentation model ready');
+      console.log(' Segmentation model ready');
     } catch (error) {
       console.error('Failed to load segmentation model:', error);
       this.modelReady = false;
@@ -97,7 +97,7 @@ export class BackgroundProcessor {
       processedStream.addTrack(audioTrack);
     }
 
-    console.log('✅ Background processor initialized');
+    console.log(' Background processor initialized');
     return processedStream;
   }
 

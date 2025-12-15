@@ -12,7 +12,7 @@
 ## 🌟 Features
 
 ### 🎥 Video Conferencing
-- **Multi-party video calls** - Support for up to 50 participants per room
+- **Multi-party video calls** - Support up to 4-5 participants per room
 - **WebRTC P2P connections** - Low-latency peer-to-peer communication
 - **Adaptive bitrate** - Automatic quality adjustment based on network conditions
 - **Connection monitoring** - Real-time quality metrics (latency, jitter, packet loss)
@@ -248,22 +248,22 @@ track = AIStreamTrack(original_track, mode="pose-estimation")
 ### Recent Development (Oct-Nov 2025)
 
 **Week 1 (Oct 20-23)**
-- ✅ Added input validation middleware
-- ✅ Implemented analytics endpoints
-- ✅ Created participant list component
-- ✅ Added notification system
+-  Added input validation middleware
+-  Implemented analytics endpoints
+-  Created participant list component
+-  Added notification system
 
 **Week 2 (Oct 27-30)**
-- ✅ Enhanced WebRTC connection handling
-- ✅ Implemented network adaptation
-- ✅ Added pose estimation
-- ✅ Created video enhancement utilities
+-  Enhanced WebRTC connection handling
+-  Implemented network adaptation
+-  Added pose estimation
+-  Created video enhancement utilities
 
 **Week 3 (Nov 3-6)**
-- ✅ Database schema for sessions & analytics
-- ✅ Recording infrastructure
-- ✅ Comprehensive API tests
-- ✅ Docker improvements with health checks
+-  Database schema for sessions & analytics
+-  Recording infrastructure
+-  Comprehensive API tests
+-  Docker improvements with health checks
 
 ### Completed Features
 - [x] Multi-party video conferencing

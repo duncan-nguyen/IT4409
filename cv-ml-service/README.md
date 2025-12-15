@@ -5,12 +5,12 @@
 Service xử lý ảnh real-time sử dụng TensorFlow.js và Computer Vision, được phát triển bởi **Quang Dũng** (CV/ML Engineer) cho dự án IT4409.
 
 Service này thực hiện:
-- ✅ Truy cập webcam và microphone
-- ✅ Vòng lặp xử lý frame-by-frame với `requestAnimationFrame`
-- ✅ Tích hợp TensorFlow.js (BlazeFace, Face Mesh)
-- ✅ Filters cơ bản (Grayscale, Blur)
-- ✅ AR Filter (Sunglasses)
-- ✅ Xuất stream đã xử lý (video + audio) để sử dụng cho WebRTC
+-  Truy cập webcam và microphone
+-  Vòng lặp xử lý frame-by-frame với `requestAnimationFrame`
+-  Tích hợp TensorFlow.js (BlazeFace, Face Mesh)
+-  Filters cơ bản (Grayscale, Blur)
+-  AR Filter (Sunglasses)
+-  Xuất stream đã xử lý (video + audio) để sử dụng cho WebRTC
 
 ## 🏗️ Kiến trúc
 
@@ -190,13 +190,13 @@ peerConnection.addStream(processedStream);
 
 ## 🎨 UI Features
 
-- ✅ Modern, dark theme interface
-- ✅ Real-time FPS display
-- ✅ Status indicators
-- ✅ Filter panel với toggle switches
-- ✅ Responsive design
-- ✅ Loading states
-- ✅ Error handling
+-  Modern, dark theme interface
+-  Real-time FPS display
+-  Status indicators
+-  Filter panel với toggle switches
+-  Responsive design
+-  Loading states
+-  Error handling
 
 ## 🧪 Testing
 
@@ -211,8 +211,8 @@ peerConnection.addStream(processedStream);
 3. Memory leaks → Không tăng liên tục
 
 ### Test Browser Compatibility
-- ✅ Chrome (recommended)
-- ✅ Firefox
+-  Chrome (recommended)
+-  Firefox
 - ⚠️ Safari (có thể cần điều chỉnh)
 
 ## 🐛 Troubleshooting
@@ -270,11 +270,11 @@ Dự án: IT4409 - Công nghệ Web
 ## 📝 Notes
 
 ### Điểm mạnh
-✅ Code structure rõ ràng, dễ maintain  
-✅ Separation of concerns (mỗi file có trách nhiệm riêng)  
-✅ Follow clean code principles  
-✅ Performance optimized  
-✅ Comprehensive error handling  
+ Code structure rõ ràng, dễ maintain  
+ Separation of concerns (mỗi file có trách nhiệm riêng)  
+ Follow clean code principles  
+ Performance optimized  
+ Comprehensive error handling  
 
 ### Có thể mở rộng
 - Thêm nhiều AR filters (hats, mustache, etc.)
@@ -303,7 +303,7 @@ const canvas = videoProcessor.getResultCanvas();
 
 ---
 
-**Status**: ✅ Hoàn thành  
+**Status**:  Hoàn thành  
 **Last Updated**: 2025-11-02  
 **Version**: 1.0
 

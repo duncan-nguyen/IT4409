@@ -2,9 +2,9 @@
  * Client-side Face Detection using TensorFlow.js
  */
 
+import * as blazeface from '@tensorflow-models/blazeface';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import * as blazeface from '@tensorflow-models/blazeface';
 
 let model: blazeface.BlazeFaceModel | null = null;
 let isLoading = false;
@@ -36,7 +36,7 @@ export async function loadFaceDetectionModel(): Promise<blazeface.BlazeFaceModel
     await tf.ready();
     await tf.setBackend('webgl');
     model = await blazeface.load();
-    console.log('✅ BlazeFace model loaded successfully');
+    console.log(' BlazeFace model loaded successfully');
     isLoading = false;
     return model;
   } catch (error) {

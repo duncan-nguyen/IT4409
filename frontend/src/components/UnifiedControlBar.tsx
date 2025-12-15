@@ -1,35 +1,33 @@
 'use client';
 
-import { 
-  Mic, 
-  MicOff, 
-  Video, 
-  VideoOff, 
-  Monitor, 
-  MonitorOff,
-  Circle,
-  Square,
-  Phone,
-  ChevronUp,
-  Smile,
-  MessageCircle,
-  MoreVertical,
-  Heart,
-  ThumbsUp,
-  Star,
-  Zap,
-  Wand2,
-  Sparkles,
-  Droplet,
-  Palette,
-  Image as ImageIcon,
-  X as XIcon,
-  Upload
-} from 'lucide-react';
-import { Button } from './ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useRef } from 'react';
 import { FilterType } from '@/types';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Circle,
+  Droplet,
+  Heart,
+  Image as ImageIcon,
+  MessageCircle,
+  Mic,
+  MicOff,
+  Monitor,
+  MonitorOff,
+  Palette,
+  Phone,
+  Smile,
+  Sparkles,
+  Square,
+  Star,
+  ThumbsUp,
+  Upload,
+  Video,
+  VideoOff,
+  Wand2,
+  X as XIcon,
+  Zap
+} from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Button } from './ui/button';
 import { VirtualBackgroundType } from './VirtualBackgroundSelector';
 
 interface UnifiedControlBarProps {
@@ -38,14 +36,14 @@ interface UnifiedControlBarProps {
   isAudioEnabled: boolean;
   onToggleVideo: () => void;
   onToggleAudio: () => void;
-  
+
   // Screen sharing
   localStream: MediaStream | null;
   onScreenShareToggle: (stream: MediaStream | null) => void;
-  
+
   // Leave room
   onLeaveRoom: () => void;
-  
+
   // Chat & Reactions
   socket: any;
   roomId: string;
@@ -79,7 +77,7 @@ export default function UnifiedControlBar({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showReactionsMenu, setShowReactionsMenu] = useState(false);
   const [showFiltersMenu, setShowFiltersMenu] = useState(false);
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -162,8 +160,8 @@ export default function UnifiedControlBar({
     if (!localStream) return;
 
     try {
-      const mediaRecorder = new MediaRecorder(localStream, { 
-        mimeType: 'video/webm; codecs=vp9' 
+      const mediaRecorder = new MediaRecorder(localStream, {
+        mimeType: 'video/webm; codecs=vp9'
       });
       mediaRecorderRef.current = mediaRecorder;
 
@@ -211,155 +209,133 @@ export default function UnifiedControlBar({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pb-4 pointer-events-none">
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="max-w-3xl mx-auto pointer-events-auto"
+        className="pointer-events-auto"
       >
         {/* Main Control Bar */}
-        <div className="bg-[#1c1c1e]/95 backdrop-blur-xl rounded-full px-4 py-2 shadow-2xl border border-white/10 mx-4">
-          <div className="flex items-center justify-center gap-1">
-            {/* Microphone */}
-            <Button
-              onClick={onToggleAudio}
-              size="icon"
-              variant="ghost"
-              className={`h-11 w-11 rounded-full transition-all hover:scale-105 ${
-                isAudioEnabled 
-                  ? 'hover:bg-white/10 text-white' 
-                  : 'bg-red-500/90 hover:bg-red-600 text-white'
+        <div className="glass-panel rounded-full px-6 py-3 flex items-center gap-3 mx-auto shadow-[0_0_50px_rgba(0,0,0,0.5)] border-white/10 bg-black/40 backdrop-blur-2xl">
+          {/* Microphone */}
+          <Button
+            onClick={onToggleAudio}
+            size="icon"
+            variant="ghost"
+            className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isAudioEnabled
+                ? 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                : 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
               }`}
-              title={isAudioEnabled ? 'Mute' : 'Unmute'}
-            >
-              {isAudioEnabled ? (
-                <Mic className="h-5 w-5" />
-              ) : (
-                <MicOff className="h-5 w-5" />
-              )}
-            </Button>
+            title={isAudioEnabled ? 'Mute' : 'Unmute'}
+          >
+            {isAudioEnabled ? (
+              <Mic className="h-5 w-5" />
+            ) : (
+              <MicOff className="h-5 w-5" />
+            )}
+          </Button>
 
-            {/* Camera */}
-            <Button
-              onClick={onToggleVideo}
-              size="icon"
-              variant="ghost"
-              className={`h-11 w-11 rounded-full transition-all hover:scale-105 ${
-                isVideoEnabled 
-                  ? 'hover:bg-white/10 text-white' 
-                  : 'bg-red-500/90 hover:bg-red-600 text-white'
+          {/* Camera */}
+          <Button
+            onClick={onToggleVideo}
+            size="icon"
+            variant="ghost"
+            className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isVideoEnabled
+                ? 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                : 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
               }`}
-              title={isVideoEnabled ? 'Stop Video' : 'Start Video'}
-            >
-              {isVideoEnabled ? (
-                <Video className="h-5 w-5" />
-              ) : (
-                <VideoOff className="h-5 w-5" />
-              )}
-            </Button>
+            title={isVideoEnabled ? 'Stop Video' : 'Start Video'}
+          >
+            {isVideoEnabled ? (
+              <Video className="h-5 w-5" />
+            ) : (
+              <VideoOff className="h-5 w-5" />
+            )}
+          </Button>
 
-            {/* Screen Share */}
-            <Button
-              onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-              size="icon"
-              variant="ghost"
-              className={`h-11 w-11 rounded-full transition-all hover:scale-105 ${
-                isScreenSharing 
-                  ? 'bg-green-500/90 hover:bg-green-600 text-white' 
-                  : 'hover:bg-white/10 text-white'
+          {/* Screen Share */}
+          <Button
+            onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+            size="icon"
+            variant="ghost"
+            className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isScreenSharing
+                ? 'bg-green-500 hover:bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]'
+                : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
               }`}
-              title={isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
-            >
-              {isScreenSharing ? (
-                <MonitorOff className="h-5 w-5" />
-              ) : (
-                <Monitor className="h-5 w-5" />
-              )}
-            </Button>
+            title={isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
+          >
+            {isScreenSharing ? (
+              <MonitorOff className="h-5 w-5" />
+            ) : (
+              <Monitor className="h-5 w-5" />
+            )}
+          </Button>
 
-            {/* Reactions */}
-            <Button
-              onClick={() => setShowReactionsMenu(!showReactionsMenu)}
-              size="icon"
-              variant="ghost"
-              className="h-11 w-11 rounded-full hover:bg-white/10 text-white transition-all hover:scale-105"
-              title="Reactions"
-            >
-              <Smile className="h-5 w-5" />
-            </Button>
+          <div className="w-px h-8 bg-white/10 mx-1" />
 
-            {/* Chat */}
-            <Button
-              onClick={onToggleChat}
-              size="icon"
-              variant="ghost"
-              className="h-11 w-11 rounded-full hover:bg-white/10 text-white transition-all hover:scale-105"
-              title="Chat"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </Button>
+          {/* Reactions */}
+          <Button
+            onClick={() => setShowReactionsMenu(!showReactionsMenu)}
+            size="icon"
+            variant="ghost"
+            className="h-12 w-12 rounded-full hover:bg-white/10 text-white transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            title="Reactions"
+          >
+            <Smile className="h-5 w-5" />
+          </Button>
 
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/20 mx-1.5" />
+          {/* Chat */}
+          <Button
+            onClick={onToggleChat}
+            size="icon"
+            variant="ghost"
+            className="h-12 w-12 rounded-full hover:bg-white/10 text-white transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            title="Chat"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
 
-            {/* Recording */}
-            <Button
-              onClick={isRecording ? stopRecording : startRecording}
-              size="icon"
-              variant="ghost"
-              className={`h-11 w-11 rounded-full transition-all hover:scale-105 ${
-                isRecording 
-                  ? 'bg-red-500/90 hover:bg-red-600 text-white' 
-                  : 'hover:bg-white/10 text-white'
+          {/* Filters & Effects */}
+          <Button
+            onClick={() => setShowFiltersMenu(!showFiltersMenu)}
+            size="icon"
+            variant="ghost"
+            className="h-12 w-12 rounded-full hover:bg-white/10 text-white transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            title="Filters & Effects"
+          >
+            <Wand2 className="h-5 w-5" />
+          </Button>
+
+          {/* Recording */}
+          <Button
+            onClick={isRecording ? stopRecording : startRecording}
+            size="icon"
+            variant="ghost"
+            className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isRecording
+                ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
               }`}
-              title={isRecording ? 'Stop Recording' : 'Record'}
-            >
-              {isRecording ? (
-                <Square className="h-4 w-4 fill-white animate-pulse" />
-              ) : (
-                <Circle className="h-5 w-5" />
-              )}
-            </Button>
+            title={isRecording ? 'Stop Recording' : 'Record'}
+          >
+            {isRecording ? (
+              <Square className="h-4 w-4 fill-white animate-pulse" />
+            ) : (
+              <Circle className="h-5 w-5" />
+            )}
+          </Button>
 
-            {/* Filters & Effects */}
-            <Button
-              onClick={() => setShowFiltersMenu(!showFiltersMenu)}
-              size="icon"
-              variant="ghost"
-              className="h-11 w-11 rounded-full hover:bg-white/10 text-white transition-all hover:scale-105"
-              title="Filters & Effects"
-            >
-              <Wand2 className="h-5 w-5" />
-            </Button>
+          <div className="w-px h-8 bg-white/10 mx-1" />
 
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/20 mx-1.5" />
-
-            {/* More */}
-            <Button
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
-              size="icon"
-              variant="ghost"
-              className="h-11 w-11 rounded-full hover:bg-white/10 text-white transition-all hover:scale-105"
-              title="More options"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-
-            {/* Separator */}
-            <div className="h-6 w-px bg-white/20 mx-1.5" />
-
-            {/* Leave Call */}
-            <Button
-              onClick={onLeaveRoom}
-              size="icon"
-              className="h-11 w-11 rounded-full bg-red-500/90 hover:bg-red-600 text-white transition-all hover:scale-105 shadow-lg"
-              title="Leave Call"
-            >
-              <Phone className="h-5 w-5 rotate-[135deg]" />
-            </Button>
-          </div>
+          {/* Leave Call */}
+          <Button
+            onClick={onLeaveRoom}
+            size="icon"
+            className="h-12 w-12 rounded-full bg-red-500 hover:bg-red-600 text-white transition-all duration-300 hover:scale-110 shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+            title="Leave Call"
+          >
+            <Phone className="h-5 w-5 rotate-[135deg]" />
+          </Button>
         </div>
 
         {/* Reactions Menu Popup */}
@@ -369,54 +345,19 @@ export default function UnifiedControlBar({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#1c1c1e]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 p-3"
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-panel rounded-2xl p-3 flex gap-2 bg-black/60"
             >
-              <div className="flex gap-2">
-                {reactionIcons.map(({ type, icon: Icon, color }) => (
-                  <Button
-                    key={type}
-                    onClick={() => sendReaction(type)}
-                    size="icon"
-                    variant="ghost"
-                    className="h-12 w-12 rounded-full hover:bg-white/10 transition-all hover:scale-110"
-                  >
-                    <Icon className={`h-6 w-6 ${color}`} />
-                  </Button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* More Menu Popup */}
-        <AnimatePresence>
-          {showMoreMenu && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-24 left-8 bg-[#1c1c1e] backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 p-3 min-w-[200px]"
-            >
-              <div className="space-y-1">
+              {reactionIcons.map(({ type, icon: Icon, color }) => (
                 <Button
-                  onClick={() => {
-                    onToggleChat();
-                    setShowMoreMenu(false);
-                  }}
+                  key={type}
+                  onClick={() => sendReaction(type)}
+                  size="icon"
                   variant="ghost"
-                  className="w-full justify-start text-white hover:bg-white/10 rounded-lg"
+                  className="h-12 w-12 rounded-full hover:bg-white/10 transition-all hover:scale-125"
                 >
-                  <MessageCircle className="h-4 w-4 mr-3" />
-                  Chat
+                  <Icon className={`h-6 w-6 ${color} drop-shadow-lg`} />
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-white hover:bg-white/10 rounded-lg"
-                >
-                  <ChevronUp className="h-4 w-4 mr-3" />
-                  Settings
-                </Button>
-              </div>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
@@ -428,20 +369,24 @@ export default function UnifiedControlBar({
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#1c1c1e]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 min-w-[320px] max-w-[400px] max-h-[70vh] flex flex-col"
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 glass-panel rounded-2xl p-0 min-w-[360px] max-w-[400px] max-h-[70vh] flex flex-col bg-black/60 overflow-hidden"
             >
+              <div className="p-4 border-b border-white/10">
+                <h3 className="text-sm font-semibold text-white">Effects Studio</h3>
+              </div>
+
               {/* Scrollable Content */}
-              <div 
-                className="overflow-y-auto p-4" 
-                style={{ 
-                  scrollbarWidth: 'thin', 
-                  scrollbarColor: '#6b7280 #1f2937',
+              <div
+                className="overflow-y-auto p-4 space-y-6"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(255,255,255,0.2) transparent',
                 }}
               >
                 {/* Filters Section */}
-                <div className="mb-4">
-                  <h3 className="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wide">Filters</h3>
-                  <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <h3 className="text-xs font-semibold mb-3 text-gray-400 uppercase tracking-wide">Filters</h3>
+                  <div className="grid grid-cols-3 gap-3">
                     {filters.map(({ value, label, icon: Icon }) => (
                       <Button
                         key={value}
@@ -450,14 +395,13 @@ export default function UnifiedControlBar({
                           setShowFiltersMenu(false);
                         }}
                         variant="ghost"
-                        className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all ${
-                          currentFilter === value
-                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
-                            : 'hover:bg-white/10 text-white'
-                        }`}
+                        className={`h-20 flex flex-col items-center justify-center gap-2 rounded-xl transition-all border ${currentFilter === value
+                            ? 'bg-neon-blue/20 text-neon-blue border-neon-blue shadow-[0_0_15px_rgba(0,243,255,0.2)]'
+                            : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
+                          }`}
                       >
-                        <Icon className="h-5 w-5" />
-                        <span className="text-[10px]">{label}</span>
+                        <Icon className="h-6 w-6" />
+                        <span className="text-[10px] font-medium">{label}</span>
                       </Button>
                     ))}
                   </div>
@@ -465,8 +409,8 @@ export default function UnifiedControlBar({
 
                 {/* Backgrounds Section */}
                 <div>
-                  <h3 className="text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wide">Virtual Background</h3>
-                  <div className="grid grid-cols-3 gap-2 mb-3">
+                  <h3 className="text-xs font-semibold mb-3 text-gray-400 uppercase tracking-wide">Virtual Background</h3>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
                     {backgrounds.map(({ value, label, icon: Icon }) => (
                       <Button
                         key={value}
@@ -477,24 +421,30 @@ export default function UnifiedControlBar({
                           }
                         }}
                         variant="ghost"
-                        className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all ${
-                          currentBackground === value
-                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
-                            : 'hover:bg-white/10 text-white'
-                        }`}
+                        className={`h-20 flex flex-col items-center justify-center gap-2 rounded-xl transition-all border ${currentBackground === value
+                            ? 'bg-neon-purple/20 text-neon-purple border-neon-purple shadow-[0_0_15px_rgba(188,19,254,0.2)]'
+                            : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
+                          }`}
                       >
-                        <Icon className="h-5 w-5" />
-                        <span className="text-[10px]">{label}</span>
+                        <Icon className="h-6 w-6" />
+                        <span className="text-[10px] font-medium">{label}</span>
                       </Button>
                     ))}
                   </div>
-                  
-                  {/* Preset Background Images - Always visible */}
-                  <div>
-                    <h4 className="text-[10px] font-semibold mb-2 text-gray-500 uppercase tracking-wide">Preset Backgrounds</h4>
-                    
-                    {/* Upload Button */}
-                    <div className="mb-3">
+
+                  {/* Preset Background Images */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Presets</h4>
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs bg-white/5 hover:bg-white/10 text-white border border-white/10"
+                      >
+                        <Upload className="w-3 h-3 mr-2" />
+                        Upload
+                      </Button>
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -502,35 +452,27 @@ export default function UnifiedControlBar({
                         onChange={handleFileUpload}
                         className="hidden"
                       />
-                      <Button
-                        onClick={() => fileInputRef.current?.click()}
-                        variant="ghost"
-                        className="w-full h-12 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 border border-purple-500/50 rounded-xl flex items-center justify-center gap-2 transition-all"
-                      >
-                        <Upload className="w-4 h-4" />
-                        <span className="text-xs font-medium">Upload Your Image</span>
-                      </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {presetImages.map((img, idx) => (
                         <motion.div
                           key={idx}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-white/10 hover:border-purple-500 transition-all h-20"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="relative cursor-pointer rounded-xl overflow-hidden border border-white/10 hover:border-neon-purple transition-all h-24 group"
                           onClick={() => {
                             onBackgroundChange('image', img.url);
                             setShowFiltersMenu(false);
                           }}
                         >
-                          <img 
-                            src={img.url} 
+                          <img
+                            src={img.url}
                             alt={img.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-                            <span className="text-white text-[10px] font-medium p-1.5">{img.name}</span>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end">
+                            <span className="text-white text-xs font-medium p-2">{img.name}</span>
                           </div>
                         </motion.div>
                       ))}

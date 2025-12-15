@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ThumbsUp, Smile, Star, Zap } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Heart, Smile, Star, ThumbsUp, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Reaction {
   id: string;
@@ -16,12 +16,12 @@ interface ReactionsOverlayProps {
   roomId: string;
 }
 
-const reactionIcons: Record<string, { icon: any; color: string }> = {
-  heart: { icon: Heart, color: 'text-red-500' },
-  like: { icon: ThumbsUp, color: 'text-blue-500' },
-  smile: { icon: Smile, color: 'text-yellow-500' },
-  star: { icon: Star, color: 'text-purple-500' },
-  zap: { icon: Zap, color: 'text-orange-500' },
+const reactionIcons: Record<string, { icon: any; color: string; glow: string }> = {
+  heart: { icon: Heart, color: 'text-red-500', glow: 'drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]' },
+  like: { icon: ThumbsUp, color: 'text-blue-500', glow: 'drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]' },
+  smile: { icon: Smile, color: 'text-yellow-500', glow: 'drop-shadow-[0_0_10px_rgba(234,179,8,0.8)]' },
+  star: { icon: Star, color: 'text-purple-500', glow: 'drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]' },
+  zap: { icon: Zap, color: 'text-orange-500', glow: 'drop-shadow-[0_0_10px_rgba(249,115,22,0.8)]' },
 };
 
 export default function ReactionsOverlay({ socket, roomId }: ReactionsOverlayProps) {
@@ -53,7 +53,7 @@ export default function ReactionsOverlay({ socket, roomId }: ReactionsOverlayPro
   // const sendReaction = (type: string) => {
   //   if (!socket) return;
   //   socket.emit('send_reaction', { roomId, type });
-    
+
   //   // Add local reaction immediately
   //   const newReaction: Reaction = {
   //     id: `local-${Date.now()}-${Math.random()}`,
@@ -62,7 +62,7 @@ export default function ReactionsOverlay({ socket, roomId }: ReactionsOverlayPro
   //     timestamp: Date.now(),
   //   };
   //   setReactions((prev) => [...prev, newReaction]);
-    
+
   //   setTimeout(() => {
   //     setReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
   //   }, 3000);
@@ -99,7 +99,7 @@ export default function ReactionsOverlay({ socket, roomId }: ReactionsOverlayPro
                 }}
                 className="drop-shadow-lg"
               >
-                <ReactionIcon className={`w-12 h-12 ${color}`} />
+                <ReactionIcon className={`w-12 h-12 ${color} ${reactionIcons[reaction.type]?.glow}`} />
               </motion.div>
             );
           })}

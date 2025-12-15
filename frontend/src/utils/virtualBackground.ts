@@ -1,6 +1,6 @@
+import * as bodyPix from '@tensorflow-models/body-pix';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import * as bodyPix from '@tensorflow-models/body-pix';
 
 let segmentationModel: bodyPix.BodyPix | null = null;
 
@@ -8,15 +8,15 @@ export const loadSegmentationModel = async (): Promise<bodyPix.BodyPix> => {
   if (!segmentationModel) {
     await tf.ready();
     await tf.setBackend('webgl');
-    
+
     segmentationModel = await bodyPix.load({
       architecture: 'MobileNetV1',
       outputStride: 16,
       multiplier: 0.75,
       quantBytes: 2,
     });
-    
-    console.log('✅ BodyPix segmentation model loaded');
+
+    console.log(' BodyPix segmentation model loaded');
   }
   return segmentationModel;
 };
@@ -82,7 +82,7 @@ export const applyVirtualBackground = async (
     personCanvas.height = canvas.height;
     const personCtx = personCanvas.getContext('2d');
     if (!personCtx) return;
-    
+
     personCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const personImageData = personCtx.getImageData(0, 0, canvas.width, canvas.height);
     const personPixels = personImageData.data;
