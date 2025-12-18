@@ -37,7 +37,7 @@ async function loadFaceModel(): Promise<blazeface.BlazeFaceModel> {
     await tf.ready();
     await tf.setBackend('webgl');
     faceModel = await blazeface.load();
-    console.log('✅ BlazeFace model loaded');
+    console.log(' BlazeFace model loaded');
     isLoadingFace = false;
     return faceModel;
   } catch (error) {
@@ -132,7 +132,7 @@ export class CombinedProcessor {
       try {
         await loadFaceModel();
         this.faceModelReady = true;
-        console.log('✅ Face detection ready');
+        console.log(' Face detection ready');
       } catch (error) {
         console.error('Failed to load face detection model:', error);
         this.faceModelReady = false;
@@ -144,7 +144,7 @@ export class CombinedProcessor {
       try {
         await loadSegmentationModel();
         this.segmentationModelReady = true;
-        console.log('✅ Segmentation model ready');
+        console.log(' Segmentation model ready');
       } catch (error) {
         console.error('Failed to load segmentation model:', error);
         this.segmentationModelReady = false;
@@ -163,7 +163,7 @@ export class CombinedProcessor {
               this.backgroundImage.onerror = reject;
             }
           });
-          console.log('✅ Background image loaded');
+          console.log(' Background image loaded');
         } catch (error) {
           console.error('Background image error:', error);
           this.backgroundImage = null;
@@ -219,7 +219,7 @@ export class CombinedProcessor {
       processedStream.addTrack(audioTrack);
     }
 
-    console.log('✅ Combined processor initialized (Face:', this.options.enableFaceDetection, 'BG:', this.options.backgroundType, ')');
+    console.log(' Combined processor initialized (Face:', this.options.enableFaceDetection, 'BG:', this.options.backgroundType, ')');
     return processedStream;
   }
 
@@ -303,7 +303,7 @@ export class CombinedProcessor {
       try {
         await loadFaceModel();
         this.faceModelReady = true;
-        console.log('✅ Face detection enabled');
+        console.log(' Face detection enabled');
       } catch (error) {
         console.error('Failed to load face detection model:', error);
       }
@@ -314,7 +314,7 @@ export class CombinedProcessor {
       try {
         await loadSegmentationModel();
         this.segmentationModelReady = true;
-        console.log('✅ Segmentation model loaded');
+        console.log(' Segmentation model loaded');
       } catch (error) {
         console.error('Failed to load segmentation model:', error);
       }
@@ -336,7 +336,7 @@ export class CombinedProcessor {
       this.backgroundImage.crossOrigin = 'anonymous';
       this.backgroundImage.src = options.backgroundImageUrl;
       this.backgroundImage.onload = () => {
-        console.log('✅ Background image updated');
+        console.log(' Background image updated');
       };
       this.backgroundImage.onerror = () => {
         console.error('Failed to load new background image');

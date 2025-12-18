@@ -1,5 +1,5 @@
-import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { Pool } from 'pg';
 
 dotenv.config();
 
@@ -17,16 +17,16 @@ const pool = new Pool({
 // Test connection on startup
 pool.connect()
   .then(client => {
-    console.log('✅ Database connection pool initialized');
+    console.log('Database connection pool initialized');
     client.release();
   })
   .catch(err => {
-    console.error('❌ Database connection failed:', err);
+    console.error('Database connection failed:', err);
     process.exit(-1);
   });
 
 pool.on('error', (err) => {
-  console.error('❌ Unexpected database error:', err);
+  console.error('Unexpected database error:', err);
   process.exit(-1);
 });
 
