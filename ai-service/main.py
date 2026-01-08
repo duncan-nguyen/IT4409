@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaRelay
@@ -17,12 +18,9 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# CORS
-origins = [
-    "http://localhost:3000",
-    "http://localhost",
-    "http://127.0.0.1:3000",
-]
+# CORS - Read from environment variable or use defaults
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost,http://127.0.0.1:3000")
+origins = [origin.strip() for origin in allowed_origins.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
