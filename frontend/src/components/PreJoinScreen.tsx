@@ -30,6 +30,13 @@ export default function PreJoinScreen({ onJoin, initialUsername = '' }: PreJoinS
         };
     }, [selectedAudioInput, selectedVideoInput]);
 
+    // Re-assign srcObject when video is re-enabled (video element gets re-mounted)
+    useEffect(() => {
+        if (isVideoEnabled && videoRef.current && stream) {
+            videoRef.current.srcObject = stream;
+        }
+    }, [isVideoEnabled, stream]);
+
     const startStream = async () => {
         stopStream();
         try {
@@ -149,8 +156,8 @@ export default function PreJoinScreen({ onJoin, initialUsername = '' }: PreJoinS
                                 variant="ghost"
                                 size="icon"
                                 className={`h-12 w-12 rounded-full backdrop-blur-md border border-white/10 transition-all hover:scale-110 ${!isAudioEnabled
-                                        ? 'bg-red-500/90 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                                        : 'bg-black/40 hover:bg-white/10 text-white'
+                                    ? 'bg-red-500/90 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                                    : 'bg-black/40 hover:bg-white/10 text-white'
                                     }`}
                             >
                                 {isAudioEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
@@ -160,8 +167,8 @@ export default function PreJoinScreen({ onJoin, initialUsername = '' }: PreJoinS
                                 variant="ghost"
                                 size="icon"
                                 className={`h-12 w-12 rounded-full backdrop-blur-md border border-white/10 transition-all hover:scale-110 ${!isVideoEnabled
-                                        ? 'bg-red-500/90 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                                        : 'bg-black/40 hover:bg-white/10 text-white'
+                                    ? 'bg-red-500/90 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                                    : 'bg-black/40 hover:bg-white/10 text-white'
                                     }`}
                             >
                                 {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}

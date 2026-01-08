@@ -13,6 +13,7 @@ interface VideoGridProps {
   localRole?: 'host' | 'participant';
   onKick?: (peerId: string) => void;
   onMute?: (peerId: string) => void;
+  isScreenSharing?: boolean;
 }
 
 export default function VideoGrid({
@@ -25,7 +26,8 @@ export default function VideoGrid({
   localUsername,
   localRole,
   onKick,
-  onMute
+  onMute,
+  isScreenSharing = false
 }: VideoGridProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -56,7 +58,7 @@ export default function VideoGrid({
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover scale-x-[-1]"
+              className={`w-full h-full object-cover ${isScreenSharing ? '' : 'scale-x-[-1]'}`}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-cosmic-800/80 backdrop-blur-md">
