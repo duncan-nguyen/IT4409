@@ -1,8 +1,9 @@
 'use client';
 
-import { FilterType } from '@/types';
+import { AvatarType, FilterType } from '@/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  Bot,
   Circle,
   Droplet,
   Heart,
@@ -14,14 +15,19 @@ import {
   MonitorOff,
   Palette,
   Phone,
+  Scan,
   Smile,
   Sparkles,
   Square,
   Star,
+  Subtitles,
   ThumbsUp,
   Upload,
+  User,
   Video,
   VideoOff,
+  Volume2,
+  VolumeX,
   Wand2,
   X as XIcon,
   Zap
@@ -54,6 +60,20 @@ interface UnifiedControlBarProps {
   onFilterChange: (filter: FilterType) => void;
   currentBackground: VirtualBackgroundType;
   onBackgroundChange: (bg: VirtualBackgroundType, image?: string) => void;
+
+  // Captions (new)
+  captionsEnabled?: boolean;
+  onToggleCaptions?: () => void;
+  captionLanguage?: string;
+  onCaptionLanguageChange?: (language: string) => void;
+
+  // Noise suppression (new)
+  noiseSuppressionEnabled?: boolean;
+  onToggleNoiseSuppression?: () => void;
+
+  // AI Avatar (new)
+  currentAvatarType?: AvatarType;
+  onAvatarTypeChange?: (avatarType: AvatarType) => void;
 }
 
 export default function UnifiedControlBar({
@@ -71,12 +91,21 @@ export default function UnifiedControlBar({
   onFilterChange,
   currentBackground,
   onBackgroundChange,
+  captionsEnabled = false,
+  onToggleCaptions,
+  captionLanguage = 'vi-VN',
+  onCaptionLanguageChange,
+  noiseSuppressionEnabled = false,
+  onToggleNoiseSuppression,
+  currentAvatarType = 'cartoon',
+  onAvatarTypeChange,
 }: UnifiedControlBarProps) {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showReactionsMenu, setShowReactionsMenu] = useState(false);
   const [showFiltersMenu, setShowFiltersMenu] = useState(false);
+  const [showCaptionLanguageMenu, setShowCaptionLanguageMenu] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
@@ -90,6 +119,7 @@ export default function UnifiedControlBar({
     { type: 'zap', icon: Zap, color: 'text-orange-500' },
   ];
 
+  // Basic filters
   const filters = [
     { value: 'none' as const, label: 'None', icon: XIcon },
     { value: 'blur' as const, label: 'Blur BG', icon: Droplet },
@@ -99,7 +129,35 @@ export default function UnifiedControlBar({
     { value: 'warm' as const, label: 'Warm', icon: Sparkles },
     { value: 'cool' as const, label: 'Cool', icon: Droplet },
     { value: 'dramatic' as const, label: 'Drama', icon: Palette },
-    { value: 'face-detection' as const, label: 'Face', icon: Sparkles },
+  ];
+
+  // AI filters (new)
+  const aiFilters = [
+    { value: 'face-detection' as const, label: 'Face Detect', icon: Scan, description: 'Detect faces' },
+    { value: 'face-mesh' as const, label: 'Face Mesh', icon: User, description: '468 landmarks' },
+    { value: 'avatar' as const, label: 'AI Avatar', icon: Bot, description: 'Fun overlays' },
+    { value: 'pose-estimation' as const, label: 'Pose', icon: User, description: 'Body tracking' },
+    { value: 'hands' as const, label: 'Hands', icon: Sparkles, description: 'Hand tracking' },
+    { value: 'beauty' as const, label: 'Beauty', icon: Sparkles, description: 'Skin smooth' },
+    { value: 'cartoon' as const, label: 'Cartoon', icon: Palette, description: 'Comic style' },
+    { value: 'edge-detection' as const, label: 'Edges', icon: Scan, description: 'Edge effect' },
+  ];
+
+  // Avatar types
+  const avatarTypes: { value: AvatarType; label: string; emoji: string }[] = [
+    { value: 'cartoon', label: 'Cartoon', emoji: '🎨' },
+    { value: 'robot', label: 'Robot', emoji: '' },
+    { value: 'mask', label: 'Mask', emoji: '🎭' },
+    { value: 'neon', label: 'Neon', emoji: '✨' },
+  ];
+
+  // Caption languages
+  const captionLanguages = [
+    { code: 'vi-VN', name: 'Tiếng Việt', flag: '🇻🇳' },
+    { code: 'en-US', name: 'English', flag: '🇺🇸' },
+    { code: 'zh-CN', name: '中文', flag: '🇨🇳' },
+    { code: 'ja-JP', name: '日本語', flag: '🇯🇵' },
+    { code: 'ko-KR', name: '한국어', flag: '🇰🇷' },
   ];
 
   const backgrounds = [
@@ -224,8 +282,8 @@ export default function UnifiedControlBar({
             size="icon"
             variant="ghost"
             className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isAudioEnabled
-                ? 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
-                : 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+              ? 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+              : 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
               }`}
             title={isAudioEnabled ? 'Mute' : 'Unmute'}
           >
@@ -242,8 +300,8 @@ export default function UnifiedControlBar({
             size="icon"
             variant="ghost"
             className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isVideoEnabled
-                ? 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
-                : 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+              ? 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+              : 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
               }`}
             title={isVideoEnabled ? 'Stop Video' : 'Start Video'}
           >
@@ -260,8 +318,8 @@ export default function UnifiedControlBar({
             size="icon"
             variant="ghost"
             className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isScreenSharing
-                ? 'bg-green-500 hover:bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]'
-                : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+              ? 'bg-green-500 hover:bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]'
+              : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
               }`}
             title={isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
           >
@@ -296,6 +354,51 @@ export default function UnifiedControlBar({
             <MessageCircle className="h-5 w-5" />
           </Button>
 
+          {/* Captions */}
+          {onToggleCaptions && (
+            <div className="relative">
+              <Button
+                onClick={onToggleCaptions}
+                size="icon"
+                variant="ghost"
+                className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${captionsEnabled
+                  ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]'
+                  : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                  }`}
+                title={captionsEnabled ? 'Disable Captions' : 'Enable Captions'}
+              >
+                <Subtitles className="h-5 w-5" />
+              </Button>
+              {captionsEnabled && (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"
+                />
+              )}
+            </div>
+          )}
+
+          {/* Noise Suppression */}
+          {onToggleNoiseSuppression && (
+            <Button
+              onClick={onToggleNoiseSuppression}
+              size="icon"
+              variant="ghost"
+              className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${noiseSuppressionEnabled
+                ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                }`}
+              title={noiseSuppressionEnabled ? 'Disable Noise Cancellation' : 'Enable Noise Cancellation'}
+            >
+              {noiseSuppressionEnabled ? (
+                <Volume2 className="h-5 w-5" />
+              ) : (
+                <VolumeX className="h-5 w-5" />
+              )}
+            </Button>
+          )}
+
           {/* Filters & Effects */}
           <Button
             onClick={() => setShowFiltersMenu(!showFiltersMenu)}
@@ -313,8 +416,8 @@ export default function UnifiedControlBar({
             size="icon"
             variant="ghost"
             className={`h-12 w-12 rounded-full transition-all duration-300 hover:scale-110 ${isRecording
-                ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+              ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+              : 'hover:bg-white/10 text-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]'
               }`}
             title={isRecording ? 'Stop Recording' : 'Record'}
           >
@@ -383,10 +486,10 @@ export default function UnifiedControlBar({
                   scrollbarColor: 'rgba(255,255,255,0.2) transparent',
                 }}
               >
-                {/* Filters Section */}
+                {/* Basic Filters Section */}
                 <div>
-                  <h3 className="text-xs font-semibold mb-3 text-gray-400 uppercase tracking-wide">Filters</h3>
-                  <div className="grid grid-cols-3 gap-3">
+                  <h3 className="text-xs font-semibold mb-3 text-gray-400 uppercase tracking-wide">Basic Filters</h3>
+                  <div className="grid grid-cols-4 gap-2">
                     {filters.map(({ value, label, icon: Icon }) => (
                       <Button
                         key={value}
@@ -395,17 +498,77 @@ export default function UnifiedControlBar({
                           setShowFiltersMenu(false);
                         }}
                         variant="ghost"
-                        className={`h-20 flex flex-col items-center justify-center gap-2 rounded-xl transition-all border ${currentFilter === value
-                            ? 'bg-neon-blue/20 text-neon-blue border-neon-blue shadow-[0_0_15px_rgba(0,243,255,0.2)]'
-                            : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
+                        className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all border ${currentFilter === value
+                          ? 'bg-neon-blue/20 text-neon-blue border-neon-blue shadow-[0_0_15px_rgba(0,243,255,0.2)]'
+                          : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
                           }`}
                       >
-                        <Icon className="h-6 w-6" />
-                        <span className="text-[10px] font-medium">{label}</span>
+                        <Icon className="h-5 w-5" />
+                        <span className="text-[9px] font-medium">{label}</span>
                       </Button>
                     ))}
                   </div>
                 </div>
+
+                {/* AI Filters Section (New) */}
+                <div>
+                  <h3 className="text-xs font-semibold mb-3 text-gray-400 uppercase tracking-wide flex items-center gap-2">
+                    <Bot className="h-3 w-3" />
+                    AI Effects
+                  </h3>
+                  <div className="grid grid-cols-4 gap-2">
+                    {aiFilters.map(({ value, label, icon: Icon, description }) => (
+                      <Button
+                        key={value}
+                        onClick={() => {
+                          onFilterChange(value);
+                          if (value !== 'avatar') {
+                            setShowFiltersMenu(false);
+                          }
+                        }}
+                        variant="ghost"
+                        className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all border ${currentFilter === value
+                          ? 'bg-gradient-to-br from-purple-500/30 to-blue-500/30 text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                          : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
+                          }`}
+                        title={description}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span className="text-[9px] font-medium">{label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Avatar Types (shows when avatar filter is selected) */}
+                {currentFilter === 'avatar' && onAvatarTypeChange && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                  >
+                    <h3 className="text-xs font-semibold mb-3 text-gray-400 uppercase tracking-wide">Avatar Style</h3>
+                    <div className="grid grid-cols-4 gap-2">
+                      {avatarTypes.map(({ value, label, emoji }) => (
+                        <Button
+                          key={value}
+                          onClick={() => {
+                            onAvatarTypeChange(value);
+                            setShowFiltersMenu(false);
+                          }}
+                          variant="ghost"
+                          className={`h-16 flex flex-col items-center justify-center gap-1 rounded-xl transition-all border ${currentAvatarType === value
+                            ? 'bg-gradient-to-br from-pink-500/30 to-orange-500/30 text-white border-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.3)]'
+                            : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
+                            }`}
+                        >
+                          <span className="text-xl">{emoji}</span>
+                          <span className="text-[9px] font-medium">{label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Backgrounds Section */}
                 <div>
@@ -422,8 +585,8 @@ export default function UnifiedControlBar({
                         }}
                         variant="ghost"
                         className={`h-20 flex flex-col items-center justify-center gap-2 rounded-xl transition-all border ${currentBackground === value
-                            ? 'bg-neon-purple/20 text-neon-purple border-neon-purple shadow-[0_0_15px_rgba(188,19,254,0.2)]'
-                            : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
+                          ? 'bg-neon-purple/20 text-neon-purple border-neon-purple shadow-[0_0_15px_rgba(188,19,254,0.2)]'
+                          : 'bg-white/5 border-white/5 hover:bg-white/10 text-gray-300 hover:border-white/20'
                           }`}
                       >
                         <Icon className="h-6 w-6" />

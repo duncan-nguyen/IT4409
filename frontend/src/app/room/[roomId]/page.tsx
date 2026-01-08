@@ -1,5 +1,6 @@
 'use client';
 
+import CaptionsOverlay, { Caption } from '@/components/CaptionsOverlay';
 import ChatBox from '@/components/ChatBox';
 import PreJoinScreen from '@/components/PreJoinScreen';
 import ReactionsOverlay from '@/components/ReactionsOverlay';
@@ -8,15 +9,17 @@ import VideoGrid from '@/components/VideoGrid';
 import { VirtualBackgroundType } from '@/components/VirtualBackgroundSelector';
 import WaitingRoomList from '@/components/WaitingRoomList';
 import { Button } from '@/components/ui/button';
-import { FilterType, Peer } from '@/types';
+import { AvatarType, FilterType, Peer } from '@/types';
 import { CombinedProcessor } from '@/utils/combinedProcessor';
 import { ConnectionMonitor } from '@/utils/connectionMonitor';
 import { NetworkAdapter } from '@/utils/networkAdapter';
+import { NoiseSuppressor } from '@/utils/noiseSuppression';
 import { disconnectSocket, initSocket } from '@/utils/socket';
+import { CaptionResult, SpeechToTextService } from '@/utils/speechToText';
 import { PeerConnection } from '@/utils/webrtc';
-import { AIServiceConnection } from '@/utils/webrtc-ai';
+import { AIServiceConnection, filterTypeToAIMode } from '@/utils/webrtc-ai';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function RoomPage() {
   const router = useRouter();
@@ -44,6 +47,13 @@ export default function RoomPage() {
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // New AI features state
+  const [currentAvatarType, setCurrentAvatarType] = useState<AvatarType>('cartoon');
+  const [captionsEnabled, setCaptionsEnabled] = useState(false);
+  const [captionLanguage, setCaptionLanguage] = useState('vi-VN');
+  const [captions, setCaptions] = useState<Caption[]>([]);
+  const [noiseSuppressionEnabled, setNoiseSuppressionEnabled] = useState(false);
+
   const peerConnectionsRef = useRef<Map<string, PeerConnection>>(new Map());
   const monitorsRef = useRef<Map<string, ConnectionMonitor>>(new Map());
   const adaptersRef = useRef<Map<string, NetworkAdapter>>(new Map());
@@ -51,6 +61,9 @@ export default function RoomPage() {
   const localStreamRef = useRef<MediaStream | null>(null);
   const aiConnectionRef = useRef<AIServiceConnection | null>(null);
   const combinedProcessorRef = useRef<CombinedProcessor | null>(null);
+  const speechToTextRef = useRef<SpeechToTextService | null>(null);
+  const noiseSuppressorRef = useRef<NoiseSuppressor | null>(null);
+  const captionIdCounter = useRef(0);
 
   // Initialize camera
   useEffect(() => {
@@ -93,10 +106,16 @@ export default function RoomPage() {
       if (combinedProcessorRef.current) {
         combinedProcessorRef.current.stop();
       }
+      if (speechToTextRef.current) {
+        speechToTextRef.current.dispose();
+      }
+      if (noiseSuppressorRef.current) {
+        noiseSuppressorRef.current.stop();
+      }
     };
   }, [hasJoined, selectedDevices]); // Re-run when joined or devices change
 
-  // AI Processing Pipeline with Combined Processor
+  // AI Processing Pipeline with Combined Processor & Server-side AI
   useEffect(() => {
     const processVideo = async () => {
       if (!localStream) return;
@@ -107,50 +126,242 @@ export default function RoomPage() {
         ? (currentFilter as 'grayscale' | 'sepia' | 'blur')
         : 'none';
 
+      // Check if this is an AI filter that should use the AI Service (server-side)
+      const serverAIFilters: FilterType[] = ['face-mesh', 'avatar', 'pose-estimation', 'hands', 'beauty', 'cartoon', 'edge-detection', 'face-detection', 'blur'];
+      const isServerAIFilter = serverAIFilters.includes(currentFilter);
+
       // If no processing needed, use original stream
-      if (!needsFaceDetection && !needsBackground && filterType === 'none') {
+      if (!needsFaceDetection && !needsBackground && filterType === 'none' && !isServerAIFilter) {
+        // Stop all processors
         if (combinedProcessorRef.current) {
           combinedProcessorRef.current.stop();
           combinedProcessorRef.current = null;
         }
+        if (aiConnectionRef.current) {
+          aiConnectionRef.current.close();
+        }
         setProcessedStream(localStream);
-        console.log(' Using original stream (no processing)');
+        console.log('✨ Using original stream (no processing)');
         return;
       }
 
       try {
-        // If processor exists, just update options
-        if (combinedProcessorRef.current) {
-          await combinedProcessorRef.current.updateOptions({
-            enableFaceDetection: needsFaceDetection,
+        // Server-side AI processing for advanced filters
+        if (isServerAIFilter) {
+          // Stop client-side processor if running
+          if (combinedProcessorRef.current) {
+            combinedProcessorRef.current.stop();
+            combinedProcessorRef.current = null;
+          }
+
+          // Initialize AI Service connection if not exists
+          if (!aiConnectionRef.current) {
+            const aiServiceUrl = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000';
+            aiConnectionRef.current = new AIServiceConnection(aiServiceUrl);
+          }
+
+          // Check if AI service is available
+          const isAvailable = await aiConnectionRef.current.isAvailable();
+          if (!isAvailable) {
+            console.warn('⚠️ AI Service not available, falling back to local stream');
+            setProcessedStream(localStream);
+            return;
+          }
+
+          // Get current avatar type if filter is 'avatar'
+          const avatarTypeToUse: AvatarType = currentFilter === 'avatar' ? currentAvatarType : 'cartoon';
+
+          // Map FilterType to AIProcessingMode
+          const aiMode = filterTypeToAIMode(currentFilter);
+
+          console.log(` Processing with AI Service: mode=${aiMode}, avatar=${avatarTypeToUse}`);
+
+          const aiProcessedStream = await aiConnectionRef.current.processStream(
+            localStream,
+            aiMode,
+            avatarTypeToUse
+          );
+
+          setProcessedStream(aiProcessedStream);
+          console.log('✅ AI Service processing active');
+          return;
+        }
+
+        // Client-side processing for background blur/replace
+        if (needsBackground) {
+          // Stop AI connection if running
+          if (aiConnectionRef.current) {
+            aiConnectionRef.current.close();
+          }
+
+          // If processor exists, just update options
+          if (combinedProcessorRef.current) {
+            await combinedProcessorRef.current.updateOptions({
+              enableFaceDetection: false,
+              backgroundType: currentBackground,
+              backgroundImageUrl: backgroundImageUrl || undefined,
+              filterType,
+            });
+            console.log('🔄 Updated processor options');
+            return;
+          }
+
+          // Create new combined processor
+          console.log('🔄 Starting combined processor for background...');
+          combinedProcessorRef.current = new CombinedProcessor({
+            enableFaceDetection: false,
             backgroundType: currentBackground,
             backgroundImageUrl: backgroundImageUrl || undefined,
             filterType,
           });
-          console.log('🔄 Updated processor options');
-          return;
+
+          const processedStream = await combinedProcessorRef.current.initialize(localStream);
+          setProcessedStream(processedStream);
+          console.log('✅ Combined processor active');
         }
-
-        // Create new combined processor
-        console.log('🔄 Starting combined processor...');
-        combinedProcessorRef.current = new CombinedProcessor({
-          enableFaceDetection: needsFaceDetection,
-          backgroundType: currentBackground,
-          backgroundImageUrl: backgroundImageUrl || undefined,
-          filterType,
-        });
-
-        const processedStream = await combinedProcessorRef.current.initialize(localStream);
-        setProcessedStream(processedStream);
-        console.log(' Combined processor active');
       } catch (error) {
-        console.error('Failed to start combined processor:', error);
+        console.error('❌ Failed to process video:', error);
         setProcessedStream(localStream);
       }
     };
 
     processVideo();
-  }, [localStream, currentFilter, currentBackground, backgroundImageUrl]);
+  }, [localStream, currentFilter, currentBackground, backgroundImageUrl, currentAvatarType]);
+
+  // Speech-to-Text (Captions) Effect
+  useEffect(() => {
+    if (!SpeechToTextService.isSupported()) {
+      console.warn('Speech-to-Text not supported in this browser');
+      return;
+    }
+
+    if (captionsEnabled) {
+      // Initialize speech recognition
+      speechToTextRef.current = new SpeechToTextService({
+        language: captionLanguage,
+        continuous: true,
+        interimResults: true,
+        onResult: (result: CaptionResult) => {
+          const newCaption: Caption = {
+            id: `local-${++captionIdCounter.current}`,
+            text: result.text,
+            speaker: username || 'You',
+            speakerId: socketRef.current?.id || 'local',
+            timestamp: result.timestamp,
+            isFinal: result.isFinal,
+            language: result.language,
+          };
+
+          // Update local captions
+          setCaptions((prev) => {
+            // Replace interim with final, or add new
+            if (result.isFinal) {
+              const filtered = prev.filter((c) => c.speakerId !== newCaption.speakerId || c.isFinal);
+              return [...filtered, newCaption].slice(-10);
+            } else {
+              // Update interim caption
+              const filtered = prev.filter((c) => c.speakerId !== newCaption.speakerId || c.isFinal);
+              return [...filtered, newCaption].slice(-10);
+            }
+          });
+
+          // Broadcast to other participants
+          if (socketRef.current && result.isFinal) {
+            socketRef.current.emit('send_caption', {
+              roomId,
+              text: result.text,
+              isFinal: result.isFinal,
+              timestamp: result.timestamp,
+              language: result.language,
+              username: username,
+            });
+          }
+        },
+        onError: (error) => {
+          console.error('Speech recognition error:', error);
+        },
+      });
+
+      speechToTextRef.current.start();
+    } else {
+      // Stop speech recognition
+      if (speechToTextRef.current) {
+        speechToTextRef.current.dispose();
+        speechToTextRef.current = null;
+      }
+    }
+
+    return () => {
+      if (speechToTextRef.current) {
+        speechToTextRef.current.dispose();
+        speechToTextRef.current = null;
+      }
+    };
+  }, [captionsEnabled, captionLanguage, roomId, username]);
+
+  // Noise Suppression Effect
+  useEffect(() => {
+    const setupNoiseSuppression = async () => {
+      if (!localStream) return;
+
+      if (noiseSuppressionEnabled) {
+        try {
+          noiseSuppressorRef.current = new NoiseSuppressor({
+            enabled: true,
+            aggressiveness: 'medium',
+          });
+
+          const processedAudioStream = await noiseSuppressorRef.current.processStream(localStream);
+
+          // Update local stream with noise-suppressed audio
+          localStreamRef.current = processedAudioStream;
+          console.log('🔇 Noise suppression enabled');
+        } catch (error) {
+          console.error('Failed to enable noise suppression:', error);
+        }
+      } else {
+        if (noiseSuppressorRef.current) {
+          noiseSuppressorRef.current.stop();
+          noiseSuppressorRef.current = null;
+          console.log('🔇 Noise suppression disabled');
+        }
+      }
+    };
+
+    setupNoiseSuppression();
+  }, [noiseSuppressionEnabled, localStream]);
+
+  // Listen for captions from other participants
+  useEffect(() => {
+    if (!socketRef.current) return;
+
+    const handleNewCaption = (data: {
+      peerId: string;
+      text: string;
+      isFinal: boolean;
+      timestamp: number;
+      language: string;
+      username: string;
+    }) => {
+      const newCaption: Caption = {
+        id: `${data.peerId}-${++captionIdCounter.current}`,
+        text: data.text,
+        speaker: data.username || 'Unknown',
+        speakerId: data.peerId,
+        timestamp: data.timestamp,
+        isFinal: data.isFinal,
+        language: data.language,
+      };
+
+      setCaptions((prev) => [...prev, newCaption].slice(-10));
+    };
+
+    socketRef.current.on('new_caption', handleNewCaption);
+
+    return () => {
+      socketRef.current?.off('new_caption', handleNewCaption);
+    };
+  }, [socketRef.current]);
 
   // Update Peer Connections when stream changes
   useEffect(() => {
@@ -448,6 +659,33 @@ export default function RoomPage() {
     }
   };
 
+  const toggleCaptions = useCallback(() => {
+    setCaptionsEnabled((prev) => !prev);
+  }, []);
+
+  const toggleNoiseSuppression = useCallback(() => {
+    setNoiseSuppressionEnabled((prev) => !prev);
+  }, []);
+
+  const handleCaptionLanguageChange = useCallback((language: string) => {
+    setCaptionLanguage(language);
+    if (speechToTextRef.current) {
+      speechToTextRef.current.setLanguage(language);
+    }
+  }, []);
+
+  const handleAvatarTypeChange = useCallback((avatarType: AvatarType) => {
+    setCurrentAvatarType(avatarType);
+    // Optionally notify other participants
+    if (socketRef.current) {
+      socketRef.current.emit('ai_filter_change', {
+        roomId,
+        filterType: currentFilter,
+        avatarType,
+      });
+    }
+  }, [roomId, currentFilter]);
+
   const leaveRoom = () => {
     router.push('/');
     setTimeout(() => {
@@ -583,8 +821,26 @@ export default function RoomPage() {
               setBackgroundImageUrl(imageUrl);
             }
           }}
+          // New AI features
+          captionsEnabled={captionsEnabled}
+          onToggleCaptions={toggleCaptions}
+          captionLanguage={captionLanguage}
+          onCaptionLanguageChange={handleCaptionLanguageChange}
+          noiseSuppressionEnabled={noiseSuppressionEnabled}
+          onToggleNoiseSuppression={toggleNoiseSuppression}
+          currentAvatarType={currentAvatarType}
+          onAvatarTypeChange={handleAvatarTypeChange}
         />
       )}
+
+      {/* Captions Overlay */}
+      <CaptionsOverlay
+        captions={captions}
+        isEnabled={captionsEnabled}
+        currentUserId={socketRef.current?.id}
+        language={captionLanguage}
+        onLanguageChange={handleCaptionLanguageChange}
+      />
 
       {/* Chat */}
       {socketRef.current && isChatOpen && (

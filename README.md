@@ -19,7 +19,7 @@
 - **Screen sharing** - Share your screen with participants
 - **Chat messaging** - Text chat with message history
 
-### 🤖 AI-Powered Video Processing
+###  AI-Powered Video Processing
 - **Real-time filters** - Apply filters without impacting call quality
 - **Background blur** - Blur your background using AI segmentation
 - **Face detection** - Detect and track faces in real-time

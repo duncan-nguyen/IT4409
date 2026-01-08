@@ -2,7 +2,7 @@ const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
+  disable: false, // Enable PWA in all environments (set to true to disable)
   buildExcludes: [/middleware-manifest\.json$/],
   runtimeCaching: [
     {
@@ -39,7 +39,7 @@ const nextConfig = {
       path: false,
       crypto: false,
     };
-    
+
     // Exclude TensorFlow.js from server-side bundle
     if (isServer) {
       config.externals = [...(config.externals || []), {
@@ -49,7 +49,7 @@ const nextConfig = {
         '@tensorflow-models/body-segmentation': 'commonjs @tensorflow-models/body-segmentation',
       }];
     }
-    
+
     return config;
   },
 }

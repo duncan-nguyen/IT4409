@@ -1,8 +1,10 @@
 import { Server, Socket } from 'socket.io';
 import { RoomService } from '../services/RoomService';
 import {
+    AIFilterPayload,
     AnswerPayload,
     ApproveUserPayload,
+    CaptionPayload,
     GesturePayload,
     IceCandidatePayload,
     JoinRoomPayload,
@@ -40,6 +42,12 @@ export class SignalingController {
         socket.on('send_message', (payload: MessagePayload) => this.onSendMessage(socket, payload));
         socket.on('send_reaction', (payload: ReactionPayload) => this.onSendReaction(socket, payload));
         socket.on('send_gesture', (payload: GesturePayload) => this.onSendGesture(socket, payload));
+
+        // Captions (Speech-to-Text)
+        socket.on('send_caption', (payload: CaptionPayload) => this.onSendCaption(socket, payload));
+
+        // AI Filter changes
+        socket.on('ai_filter_change', (payload: AIFilterPayload) => this.onAIFilterChange(socket, payload));
 
         // Moderation
         socket.on('kick_user', (payload: KickUserPayload) => this.onKickUser(socket, payload));
@@ -226,6 +234,28 @@ export class SignalingController {
         socket.to(roomId).emit('new_gesture', {
             peerId: socket.id,
             gesture,
+        });
+    }
+
+    private onSendCaption(socket: Socket, { roomId, text, isFinal, timestamp, language, username }: CaptionPayload): void {
+        // Broadcast caption to all participants in the room
+        socket.to(roomId).emit('new_caption', {
+            peerId: socket.id,
+            text,
+            isFinal,
+            timestamp,
+            language,
+            username: username || 'Unknown',
+        });
+    }
+
+    private onAIFilterChange(socket: Socket, { roomId, filterType, avatarType }: AIFilterPayload): void {
+        console.log(`AI Filter change from ${socket.id} in room ${roomId}: ${filterType}`);
+        // Notify others about the filter change (optional - for displaying indicator)
+        socket.to(roomId).emit('peer_filter_changed', {
+            peerId: socket.id,
+            filterType,
+            avatarType,
         });
     }
 

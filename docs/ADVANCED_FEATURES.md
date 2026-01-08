@@ -7,6 +7,11 @@
 4. [Recording](#recording)
 5. [Virtual Backgrounds](#virtual-backgrounds)
 6. [Progressive Web App](#progressive-web-app)
+7. [AI Features](#ai-features) ⭐ NEW
+   - [Speech-to-Text (Captions)](#speech-to-text-captions)
+   - [AI Avatar & Face Mesh](#ai-avatar--face-mesh)
+   - [Noise Suppression](#noise-suppression)
+   - [AI Filters](#ai-filters)
 
 ---
 
@@ -349,14 +354,134 @@ socket.on('new_gesture', ({ peerId, gesture }) => {});
 
 ---
 
+##  AI Features
+
+### Speech-to-Text (Captions)
+
+#### Overview
+Real-time speech recognition for automatic captions using the **Web Speech API**.
+
+#### Features
+- **Live Transcription** - Real-time speech-to-text conversion
+- **Multi-language Support** - Vietnamese, English, Chinese, Japanese, Korean
+- **Interim Results** - Shows words as they're being spoken
+- **Broadcast to Peers** - Captions visible to all participants
+- **Customizable Display** - Font size, position options
+
+#### Usage
+1. Click the **Subtitles** (CC) button in control bar
+2. Select your language from the dropdown
+3. Speak - your words will appear as captions
+4. All participants see captions in real-time
+
+#### Technical Details
+- **API**: Web Speech API (`SpeechRecognition`)
+- **Supported Browsers**: Chrome, Edge (best support)
+- **Socket Events**: `send_caption`, `new_caption`
+- **Languages**: vi-VN, en-US, zh-CN, ja-JP, ko-KR, and more
+- **File**: `frontend/src/utils/speechToText.ts`
+
+---
+
+### AI Avatar & Face Mesh
+
+#### Overview
+Advanced AI-powered face tracking with 468 landmark points using **MediaPipe Face Mesh**.
+
+#### Avatar Types
+- 🎨 **Cartoon** - Big cartoon eyes and nose overlay
+-  **Robot** - Cyberpunk robot face with scanning effect
+- 🎭 **Mask** - Decorative golden mask outline
+- ✨ **Neon** - Neon glow effect on face contours
+
+#### AI Filters Available
+| Filter | Description | Technology |
+|--------|-------------|------------|
+| Face Mesh | 468-point face landmark visualization | MediaPipe |
+| Avatar | Fun character overlays | MediaPipe Face Mesh |
+| Pose Estimation | Full body skeleton tracking | MediaPipe Pose |
+| Hand Tracking | Hand gesture detection | MediaPipe Hands |
+| Beauty | Skin smoothing and brightness | OpenCV Bilateral |
+| Cartoon | Comic book style effect | OpenCV K-means |
+| Edge Detection | Artistic edge highlighting | OpenCV Canny |
+
+#### Usage
+1. Click **Effects** (wand icon) in control bar
+2. Navigate to **AI Effects** section
+3. Select an AI filter
+4. For Avatar mode, choose an avatar style
+
+#### Technical Details
+- **Server-side Processing**: Python AI Service with MediaPipe
+- **Client-side Processing**: TensorFlow.js (optional)
+- **Landmarks**: 468 face points + iris tracking
+- **FPS**: ~20-30 FPS depending on hardware
+- **Files**: 
+  - `ai-service/stream_processor.py`
+  - `frontend/src/utils/filters.ts`
+
+---
+
+### Noise Suppression
+
+#### Overview
+AI-powered audio noise cancellation to remove background noise from your microphone.
+
+#### Features
+- **Noise Gate** - Automatically mutes when not speaking
+- **Frequency Filtering** - Removes low rumble and high hiss
+- **Dynamic Compression** - Normalizes audio levels
+- **Adjustable Aggressiveness** - Low, Medium, High modes
+
+#### Usage
+1. Click the **Speaker** icon in control bar
+2. Toggle noise suppression on/off
+3. Audio is processed in real-time
+
+#### Technical Details
+- **Technology**: Web Audio API with AudioWorklet
+- **Filters**: High-pass (80Hz), Low-pass (8-14kHz based on aggressiveness)
+- **Processing**: Real-time via AudioContext
+- **File**: `frontend/src/utils/noiseSuppression.ts`
+
+---
+
+### AI Processing Modes
+
+The AI Service supports both **server-side** and **client-side** processing:
+
+#### Server-side (Python AI Service)
+```python
+# Modes available at /offer endpoint
+modes = [
+  "blur",           # Background blur
+  "face-detection", # Face bounding boxes
+  "face-mesh",      # 468 landmarks
+  "avatar",         # Character overlays
+  "pose-estimation",# Body skeleton
+  "hands",          # Hand tracking
+  "beauty",         # Skin smoothing
+  "cartoon",        # Comic effect
+  "edge-detection"  # Edge highlighting
+]
+```
+
+#### Client-side (TensorFlow.js)
+- BlazeFace for face detection
+- BodyPix for background segmentation
+- Face Landmarks Detection (optional)
+
+---
+
 ## 💡 Contributing
 
 Want to add new features? Check out:
 - [`/frontend/src/components/`](../frontend/src/components/) - UI components
 - [`/frontend/src/utils/`](../frontend/src/utils/) - Utility functions
+- [`/ai-service/`](../ai-service/) - Python AI processing service
 - [`/signaling-server/src/`](../signaling-server/src/) - WebSocket server
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Development guide
 
 ---
 
-**Built with ❤️ using Next.js, TensorFlow.js, Socket.IO, and Framer Motion**
+**Built with ❤️ using Next.js, TensorFlow.js, MediaPipe, Socket.IO, and Framer Motion**

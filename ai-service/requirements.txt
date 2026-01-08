@@ -1,7 +1,9 @@
-fastapi==0.104.1
-uvicorn==0.24.0
+fastapi==0.115.0
+uvicorn==0.30.0
 aiortc==1.9.0
-mediapipe==0.10.8
-opencv-python-headless==4.8.1.78
-numpy==1.26.2
-python-multipart==0.0.6
+mediapipe==0.10.14
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+python-multipart==0.0.9
+scipy==1.13.0
+pillow==10.3.0

@@ -5,7 +5,7 @@ Video calling interface with real-time AI filters.
 ## Features
 
 - 🎥 HD video streaming (1280x720)
-- 🤖 Real-time AI face detection (TensorFlow.js BlazeFace)
+-  Real-time AI face detection (TensorFlow.js BlazeFace)
 - 🎨 Multiple filters: Blur, Grayscale, Sepia, Face Detection
 - 📱 Responsive design (Tailwind CSS)
 - 🔄 Automatic reconnection

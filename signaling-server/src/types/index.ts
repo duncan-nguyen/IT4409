@@ -71,3 +71,20 @@ export interface ApproveUserPayload {
     roomId: string;
     targetPeerId: string;
 }
+
+// Caption/Speech-to-Text payload
+export interface CaptionPayload {
+    roomId: string;
+    text: string;
+    isFinal: boolean;
+    timestamp: number;
+    language: string;
+    username?: string;
+}
+
+// AI Filter change payload
+export interface AIFilterPayload {
+    roomId: string;
+    filterType: string;
+    avatarType?: string;
+}
