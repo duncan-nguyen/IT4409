@@ -23,12 +23,24 @@ export default function DeviceSelector({
     useEffect(() => {
         const getDevices = async () => {
             try {
-                // Request permission to list labels
-                await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-                setHasPermission(true);
-
+                // First try to enumerate devices - if labels are available, we have permission
                 const deviceList = await navigator.mediaDevices.enumerateDevices();
-                setDevices(deviceList);
+
+                // Check if we have labels (indicates permission was granted)
+                const hasLabels = deviceList.some(d => d.label && d.label.length > 0);
+
+                if (hasLabels) {
+                    setHasPermission(true);
+                    setDevices(deviceList);
+                } else {
+                    // Request permission to list labels
+                    await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                    setHasPermission(true);
+
+                    // Re-enumerate to get labels
+                    const updatedDeviceList = await navigator.mediaDevices.enumerateDevices();
+                    setDevices(updatedDeviceList);
+                }
             } catch (error) {
                 console.error('Error enumerating devices:', error);
             }
