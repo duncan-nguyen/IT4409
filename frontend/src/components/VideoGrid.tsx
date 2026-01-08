@@ -121,7 +121,7 @@ function RemoteVideo({
         ref={videoRef}
         autoPlay
         playsInline
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover scale-x-[-1]"
       />
       <div className="absolute bottom-4 left-4 glass-panel px-4 py-2 rounded-full backdrop-blur-md bg-black/40 border-white/10">
         <span className="text-sm font-medium text-white shadow-black drop-shadow-md">{peer.username || `Peer ${peer.peerId.slice(0, 6)}`}</span>

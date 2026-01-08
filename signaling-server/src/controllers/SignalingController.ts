@@ -128,9 +128,13 @@ export class SignalingController {
 
     private onOffer(socket: Socket, { roomId, peerId, offer }: OfferPayload): void {
         console.log(`Relaying offer from ${socket.id} to ${peerId} in room ${roomId}`);
+        // Get sender's info to include username
+        const sender = this.roomService.getParticipant(roomId, socket.id);
         socket.to(peerId).emit('offer', {
             peerId: socket.id,
             offer,
+            username: sender?.username,
+            role: sender?.role,
         });
     }
 

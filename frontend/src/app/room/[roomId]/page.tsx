@@ -536,12 +536,20 @@ export default function RoomPage() {
         peerConnectionsRef.current.set(peerId, pc);
       });
 
-      socket.on('offer', async ({ peerId, offer }) => {
-        console.log('Received offer from:', peerId);
+      socket.on('offer', async ({ peerId, offer, username: peerUsername, role: peerRole }) => {
+        console.log('Received offer from:', peerId, peerUsername);
         const pc = new PeerConnection(peerId, (stream) => {
           setPeers((prev) => {
             const newPeers = new Map(prev);
-            newPeers.set(peerId, { peerId, stream });
+            // Preserve existing peer info if available, add stream
+            const existingPeer = prev.get(peerId);
+            newPeers.set(peerId, {
+              peerId,
+              stream,
+              username: existingPeer?.username || peerUsername,
+              role: existingPeer?.role || peerRole,
+              status: 'joined'
+            });
             return newPeers;
           });
         });

@@ -44,3 +44,15 @@ coverage/
 # Misc
 *.pem
 .vercel
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/   
+.venv/
