@@ -8,6 +8,7 @@ interface VideoGridProps {
   canvasRef?: React.RefObject<HTMLCanvasElement>;
   isVideoEnabled: boolean;
   isAudioEnabled?: boolean;
+  isScreenSharing?: boolean;
   currentFilter?: FilterType;
   localUsername?: string;
   localRole?: 'host' | 'participant';
@@ -21,6 +22,7 @@ export default function VideoGrid({
   canvasRef,
   isVideoEnabled,
   isAudioEnabled = true,
+  isScreenSharing = false,
   currentFilter = 'none',
   localUsername,
   localRole,
@@ -56,7 +58,7 @@ export default function VideoGrid({
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover scale-x-[-1]"
+              className={`w-full h-full object-cover ${isScreenSharing ? '' : 'scale-x-[-1]'}`}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-cosmic-800/80 backdrop-blur-md">
