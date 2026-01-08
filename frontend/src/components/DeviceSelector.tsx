@@ -2,6 +2,7 @@
 
 import { Mic, Speaker, Video } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import CustomSelect from './ui/custom-select';
 
 interface DeviceSelectorProps {
     onDeviceChange: (deviceId: string, kind: MediaDeviceKind) => void;
@@ -54,75 +55,66 @@ export default function DeviceSelector({
     }
 
     return (
-        <div className="space-y-4 w-full max-w-md">
+        <div className="space-y-5 w-full">
             {/* Audio Input */}
             <div className="space-y-2">
                 <label className="text-xs font-medium flex items-center gap-2 text-gray-400 uppercase tracking-wider ml-1">
-                    <Mic className="w-3 h-3 text-neon-blue" /> Microphone
-                </label>
-                <div className="relative">
-                    <select
-                        className="w-full h-12 appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50 transition-all cursor-pointer hover:bg-white/10"
-                        value={selectedAudioInput}
-                        onChange={(e) => onDeviceChange(e.target.value, 'audioinput')}
-                    >
-                        {audioInputs.map((device) => (
-                            <option key={device.deviceId} value={device.deviceId} className="bg-gray-900 text-white">
-                                {device.label || `Microphone ${device.deviceId.slice(0, 5)}...`}
-                            </option>
-                        ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <div className="p-1.5 rounded-lg bg-neon-blue/10">
+                        <Mic className="w-3.5 h-3.5 text-neon-blue" />
                     </div>
-                </div>
+                    Microphone
+                </label>
+                <CustomSelect
+                    options={audioInputs.map((device) => ({
+                        value: device.deviceId,
+                        label: device.label || `Microphone ${device.deviceId.slice(0, 5)}...`,
+                    }))}
+                    value={selectedAudioInput}
+                    onChange={(value) => onDeviceChange(value, 'audioinput')}
+                    placeholder="Select microphone"
+                    accentColor="blue"
+                />
             </div>
 
             {/* Video Input */}
             <div className="space-y-2">
                 <label className="text-xs font-medium flex items-center gap-2 text-gray-400 uppercase tracking-wider ml-1">
-                    <Video className="w-3 h-3 text-neon-purple" /> Camera
-                </label>
-                <div className="relative">
-                    <select
-                        className="w-full h-12 appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50 transition-all cursor-pointer hover:bg-white/10"
-                        value={selectedVideoInput}
-                        onChange={(e) => onDeviceChange(e.target.value, 'videoinput')}
-                    >
-                        {videoInputs.map((device) => (
-                            <option key={device.deviceId} value={device.deviceId} className="bg-gray-900 text-white">
-                                {device.label || `Camera ${device.deviceId.slice(0, 5)}...`}
-                            </option>
-                        ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <div className="p-1.5 rounded-lg bg-neon-purple/10">
+                        <Video className="w-3.5 h-3.5 text-neon-purple" />
                     </div>
-                </div>
+                    Camera
+                </label>
+                <CustomSelect
+                    options={videoInputs.map((device) => ({
+                        value: device.deviceId,
+                        label: device.label || `Camera ${device.deviceId.slice(0, 5)}...`,
+                    }))}
+                    value={selectedVideoInput}
+                    onChange={(value) => onDeviceChange(value, 'videoinput')}
+                    placeholder="Select camera"
+                    accentColor="purple"
+                />
             </div>
 
             {/* Audio Output (Speakers) - Only works on Chrome/Edge */}
             {audioOutputs.length > 0 && (
                 <div className="space-y-2">
                     <label className="text-xs font-medium flex items-center gap-2 text-gray-400 uppercase tracking-wider ml-1">
-                        <Speaker className="w-3 h-3 text-neon-pink" /> Speaker
-                    </label>
-                    <div className="relative">
-                        <select
-                            className="w-full h-12 appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/50 transition-all cursor-pointer hover:bg-white/10"
-                            value={selectedAudioOutput}
-                            onChange={(e) => onDeviceChange(e.target.value, 'audiooutput')}
-                        >
-                            {audioOutputs.map((device) => (
-                                <option key={device.deviceId} value={device.deviceId} className="bg-gray-900 text-white">
-                                    {device.label || `Speaker ${device.deviceId.slice(0, 5)}...`}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <div className="p-1.5 rounded-lg bg-[#ff0080]/10">
+                            <Speaker className="w-3.5 h-3.5 text-[#ff0080]" />
                         </div>
-                    </div>
+                        Speaker
+                    </label>
+                    <CustomSelect
+                        options={audioOutputs.map((device) => ({
+                            value: device.deviceId,
+                            label: device.label || `Speaker ${device.deviceId.slice(0, 5)}...`,
+                        }))}
+                        value={selectedAudioOutput}
+                        onChange={(value) => onDeviceChange(value, 'audiooutput')}
+                        placeholder="Select speaker"
+                        accentColor="pink"
+                    />
                 </div>
             )}
         </div>

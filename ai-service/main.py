@@ -1,10 +1,9 @@
-import os
-import json
 import logging
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
+
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaRelay
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from stream_processor import AIStreamTrack
 
 # Configure logging
@@ -30,17 +29,19 @@ app.add_middleware(
 pcs = set()
 relay = MediaRelay()
 
+
 @app.on_event("shutdown")
 async def on_shutdown():
     coros = [pc.close() for pc in pcs]
     await asyncio.gather(*coros)
     pcs.clear()
 
+
 @app.post("/offer")
 async def offer(request: Request):
     params = await request.json()
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
-    mode = params.get("mode", "none") # 'blur', 'face-detection', 'none'
+    mode = params.get("mode", "none")  # 'blur', 'face-detection', 'none'
 
     pc = RTCPeerConnection()
     pcs.add(pc)
@@ -71,10 +72,8 @@ async def offer(request: Request):
     answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
 
-    return {
-        "sdp": pc.localDescription.sdp,
-        "type": pc.localDescription.type
-    }
+    return {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
+
 
 @app.get("/health")
 def health_check():
