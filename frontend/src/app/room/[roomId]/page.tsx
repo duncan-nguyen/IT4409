@@ -787,7 +787,6 @@ export default function RoomPage() {
           localStream={processedStream}
           peers={Array.from(peers.values())}
           isVideoEnabled={isVideoEnabled}
-          isScreenSharing={screenStream !== null}
           currentFilter={currentFilter}
           localUsername={username}
           localRole={role}

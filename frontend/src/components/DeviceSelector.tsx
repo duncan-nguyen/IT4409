@@ -54,19 +54,6 @@ export default function DeviceSelector({
     const videoInputs = devices.filter((d) => d.kind === 'videoinput');
     const audioOutputs = devices.filter((d) => d.kind === 'audiooutput');
 
-    // Auto-select first device if none selected
-    useEffect(() => {
-        if (audioInputs.length > 0 && !selectedAudioInput) {
-            onDeviceChange(audioInputs[0].deviceId, 'audioinput');
-        }
-        if (videoInputs.length > 0 && !selectedVideoInput) {
-            onDeviceChange(videoInputs[0].deviceId, 'videoinput');
-        }
-        if (audioOutputs.length > 0 && !selectedAudioOutput) {
-            onDeviceChange(audioOutputs[0].deviceId, 'audiooutput');
-        }
-    }, [devices, selectedAudioInput, selectedVideoInput, selectedAudioOutput, onDeviceChange]);
-
     if (!hasPermission) {
         return (
             <div className="text-center p-4 text-muted-foreground">
