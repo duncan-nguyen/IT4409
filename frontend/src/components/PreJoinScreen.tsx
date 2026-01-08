@@ -20,14 +20,23 @@ export default function PreJoinScreen({ onJoin, initialUsername = '' }: PreJoinS
     const [selectedAudioInput, setSelectedAudioInput] = useState<string>();
     const [selectedVideoInput, setSelectedVideoInput] = useState<string>();
     const [selectedAudioOutput, setSelectedAudioOutput] = useState<string>();
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
 
+    // Initial stream setup
     useEffect(() => {
         startStream();
         return () => {
             stopStream();
         };
+    }, []);
+
+    // Restart stream when device selection changes (after initial setup)
+    useEffect(() => {
+        if (isInitialized && (selectedAudioInput || selectedVideoInput)) {
+            startStream();
+        }
     }, [selectedAudioInput, selectedVideoInput]);
 
     // Re-assign srcObject when video is re-enabled (video element gets re-mounted)
@@ -52,14 +61,17 @@ export default function PreJoinScreen({ onJoin, initialUsername = '' }: PreJoinS
                 videoRef.current.srcObject = newStream;
             }
 
-            // Update initial selection if not set
-            if (!selectedAudioInput) {
+            // Update initial selection if not set (only on first run)
+            if (!isInitialized) {
                 const audioTrack = newStream.getAudioTracks()[0];
-                if (audioTrack) setSelectedAudioInput(audioTrack.getSettings().deviceId);
-            }
-            if (!selectedVideoInput) {
                 const videoTrack = newStream.getVideoTracks()[0];
-                if (videoTrack) setSelectedVideoInput(videoTrack.getSettings().deviceId);
+                if (audioTrack && !selectedAudioInput) {
+                    setSelectedAudioInput(audioTrack.getSettings().deviceId);
+                }
+                if (videoTrack && !selectedVideoInput) {
+                    setSelectedVideoInput(videoTrack.getSettings().deviceId);
+                }
+                setIsInitialized(true);
             }
 
         } catch (error) {
