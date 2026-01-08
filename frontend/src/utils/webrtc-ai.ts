@@ -1,5 +1,8 @@
 import { AvatarType, FilterType } from '@/types';
 
+// Prefer env-configured AI service URL; fallback to localhost in development
+const AI_BASE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000';
+
 // AI processing modes supported by the server
 export type AIProcessingMode =
     | 'none'
@@ -19,7 +22,7 @@ export class AIServiceConnection {
     private currentMode: AIProcessingMode = 'none';
     private currentAvatarType: AvatarType = 'cartoon';
 
-    constructor(baseUrl: string = 'http://localhost:8000') {
+    constructor(baseUrl: string = AI_BASE_URL) {
         this.baseUrl = baseUrl;
     }
 
